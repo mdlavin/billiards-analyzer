@@ -8,7 +8,7 @@ import simplejson as json
 import argparse
 import itertools
 
-parser = argparse.ArgumentParser(description="Analyze Billards games and " +
+parser = argparse.ArgumentParser(description="Analyze Billiards games and " +
                                 "output some statistics.")
 parser.add_argument("matches", help="A JSON file containing match data",
                     type=argparse.FileType('r'))

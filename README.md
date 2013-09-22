@@ -1,7 +1,7 @@
 Introduction
 ============
 
-This program attempts to analyze a series of 8-ball Billards game results and
+This program attempts to analyze a series of 8-ball Billiards game results and
 extract relative player statistics from the data.  In the future, I'd like to
 have the program team pairings to have even match-ups in team 8-ball.
 
