@@ -1,0 +1,79 @@
+#!/usr/bin/env python
+
+import pymc as pm
+from pymc.Matplot import plot
+import sys
+import os
+import simplejson as json
+import argparse
+import itertools
+
+parser = argparse.ArgumentParser(description="Analyze Billards games and " +
+                                "output some statistics.")
+parser.add_argument("matches", help="A JSON file containing match data",
+                    type=argparse.FileType('r'))
+parser.add_argument('-p', "--plot", dest='plot', action='store_true', 
+                    help="Plot the statistics for each player at the end")
+
+# Setup the system path for easily executing the script in development
+path = os.path.abspath(sys.argv[0])
+while os.path.dirname(path) != path:
+    if os.path.exists(os.path.join(path, 'analyzer', '__init__.py')):
+        sys.path.insert(0, path)
+        break
+    path = os.path.dirname(path)
+
+from analyzer import analyze
+
+def new_player(name): 
+    return pm.Beta(name + "_sink", alpha=3, beta=3, value=0.5)
+
+def players_from_match(match):
+    return match['winners'] + match['losers']
+
+def json_to_matches(matches_json):
+    players_for_each_match = map(players_from_match, matches_json)
+    all_player_names = set(itertools.chain(*players_for_each_match))
+    player_var_lookup = {}
+    for name in all_player_names:
+        player_var_lookup[name] = new_player(name)
+        
+    matches = []
+    for match in matches_json:
+        winner_vars = map(lambda p: player_var_lookup[p], match['winners'])
+        losers_vars = map(lambda p: player_var_lookup[p], match['losers'])
+        ordered = False
+        if "ordered" in match:
+            ordered = match["ordered"]
+        newMatch = analyze.Match(winner_vars, losers_vars, ordered)
+        matches.append(newMatch)
+
+    return matches
+
+def find_all_players(matches):
+    return set(itertools.chain(*map(players_from_match, matches)))
+
+args = parser.parse_args()
+
+matches_json = json.loads(args.matches.read())
+matches = json_to_matches(matches_json)
+
+all_match_vars = analyze.all_matches(matches)
+match_outcomes = analyze.outcomes(all_match_vars)
+
+players = list(set(itertools.chain(*map(lambda m: m.players(), matches))))
+all_vars = players + all_match_vars + match_outcomes
+
+model = pm.MCMC(all_vars)
+model.sample(iter=20000, burn=4000)
+print "" # Advance one line to avoid overlap when outputting the data below
+
+# Collect stats, sort the players by their mean sink ranking and print 
+# the results
+stats = model.stats()
+sorted_players = sorted(players, key=lambda p: stats[p.__name__]['mean'])
+for player in sorted_players:
+    print player.__name__  + ": " + str(stats[player.__name__]['mean'])
+
+if args.plot:
+    plot(model)
