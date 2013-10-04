@@ -60,10 +60,10 @@ class Chain(object):
                 if start_state not in self.states:
                     raise Exception("The start_state is not part of this chain")
             
-                    # Build an initial distribution vector based on the 
-                    # starting state provided
-                    pi = pi * 0
-                    pi[self.states[start_state], 0] = 1
+                # Build an initial distribution vector based on the 
+                # starting state provided
+                pi = pi * 0.
+                pi[self.states[start_state], 0] = 1.
         else:
             # Build an initial distribution with an even distribution
             # across all states
@@ -92,6 +92,9 @@ class Chain(object):
                                 "from state " + col + " are larger than 1")
                 
             trans[col,col] = 1. - sum
+
+
+        trans = trans**100
 
         while True:
             pi_temp = trans * pi

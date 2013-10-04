@@ -15,6 +15,7 @@ parser.add_argument("matches", help="A JSON file containing match data",
 parser.add_argument('-p', "--plot", dest='plot', action='store_true', 
                     help="Plot the statistics for each player at the end")
 
+
 # Setup the system path for easily executing the script in development
 path = os.path.abspath(sys.argv[0])
 while os.path.dirname(path) != path:
@@ -65,7 +66,7 @@ players = list(set(itertools.chain(*map(lambda m: m.players(), matches))))
 all_vars = players + all_match_vars + match_outcomes
 
 model = pm.MCMC(all_vars)
-model.sample(iter=20000, burn=4000)
+model.sample(iter=2000, burn=0, thin=1)
 print "" # Advance one line to avoid overlap when outputting the data below
 
 # Collect stats, sort the players by their mean sink ranking and print 
@@ -77,3 +78,28 @@ for player in sorted_players:
 
 if args.plot:
     plot(model)
+
+correct = 0
+for match in matches:
+    winners = map(lambda p: stats[p.__name__]['mean'], match.winners)
+    losers = map(lambda p: stats[p.__name__]['mean'], match.losers)
+
+    if match.ordered:
+        match_eval_method = analyze.match_eval_markov_partial_ordered
+    else:
+        match_eval_method = analyze.match_eval_markov_unordered
+
+    chance_of_win = match_eval_method(winners, losers)
+    if chance_of_win > 0.5:
+        correct += 1
+
+    # Reverse the losers to maintain partial ordering.  Reversing doesn't 
+    # matter for the non-ordered matches, so it's safe to always reverse
+    losers.reverse()
+    chance_of_win = match_eval_method(losers, winners)
+    if chance_of_win < 0.5:
+        correct += 1
+
+    
+print "Correctly guessed %(correct)d out of %(total)d matches" % \
+      {"correct": correct, "total": len(matches) * 2 }

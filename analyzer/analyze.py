@@ -1,4 +1,5 @@
 import pymc as pm
+import markov
 import math
 import itertools
 
@@ -19,80 +20,94 @@ class Match(object):
             self.losers = [self.losers]
 
     def players(self):
-        return self.winners + self.losers    
+        return self.winners + self.losers
 
-            
-def match_win(winners, losers, ordered=False):
+
+def zip_lists(list_a, list_b):
+    result = []
+    n = max(len(list_a), len(list_b))
+    for i in range(n):
+        if i < len(list_a):
+            result.append(list_a[i])
+        if i < len(list_b):
+            result.append(list_b[i])
+    return result
+
+
+def generate_orderings(winners, losers, partial=False):
+    results = []
+    winner_orderings = []
+    loser_orderings = []
+    if not partial:
+        winner_orderings = itertools.permutations(winners)
+        loser_orderings = itertools.permutations(losers)
+        all_pairings = itertools.product(winner_orderings, loser_orderings)
+        for (winners,losers) in all_pairings:
+            results.append( (zip_lists(winners, losers), 0) )
+            results.append( (zip_lists(losers, winners), 1) )
+    else:
+        players = zip_lists(winners, losers)
+        for n in range(len(players)):
+            results.append( (players[n:] + players[:n] , n % 2) )
+
+    return results
+
+def match_eval_markov_unordered(winners, losers):
+    return _match_eval_markov_unordered(winners, losers, False)
+
+def match_eval_markov_partial_ordered(winners, losers):
+    return _match_eval_markov_unordered(winners, losers, True)
+
+def _match_eval_markov_unordered(winners, losers, partial):
     if len(winners) != len(losers):
         raise ValueError("The number of winners and losers must be the same")
-
-    if not ordered:
-        count=0
-        total=0
-        winner_orderings=itertools.permutations(winners)
-        loser_orderings=itertools.permutations(losers)
-        all_pairings=itertools.product(winner_orderings, loser_orderings)
-        for (winners,losers) in all_pairings:
-            count += 1
-            total+=match_win(list(winners), list(losers), ordered=True)
-        return total/count
-
-    winners_first = []
-
-    # Any of the winners might have sunk their first shot
-    for sunk in range(0,len(winners)):
-        total = 0.0
-        for missed in range(0, sunk):
-            total += pm.bernoulli_like([0], losers[missed])
-            total += pm.bernoulli_like([0], winners[missed])
-        total += pm.bernoulli_like([1], winners[sunk])
-        winners_first.append(total)
-
-    # Any of the winners might have sunk their second shot
-    for sunk in range(0,len(winners)):
-        total = 0.0
-        # Anybody before the winning hit must have missed 2 shots
-        for missed in range(0, sunk):
-            total += pm.bernoulli_like([0,0], winners[missed])
-            total += pm.bernoulli_like([0,0], losers[missed])
-        total += pm.bernoulli_like([0,1], winners[sunk])
-        # Anybody after the winning hit must have missed their first shot
-        for missed in range(sunk+1, len(winners)):
-            total += pm.bernoulli_like([0], winners[missed])
-            total += pm.bernoulli_like([0], losers[missed])
-        winners_first.append(total)
-
-    losers_first = []
-
-    # Any of the winners might have sunk their first shot
-    for sunk in range(0,len(winners)):
-        total = 0.0
-        for missed in range(0, sunk):
-            total += pm.bernoulli_like([0], losers[missed])
-            total += pm.bernoulli_like([0], winners[missed])
-        total += pm.bernoulli_like([0], losers[sunk])
-        total += pm.bernoulli_like([1], winners[sunk])
-        losers_first.append(total)
-
-    # Any of the winners might have sunk their second shot
-    for sunk in range(0,len(winners)):
-        total = 0.0
-        # Anybody before the winning hit must have missed 2 shots
-        for missed in range(0, sunk):
-            total += pm.bernoulli_like([0,0], losers[missed])
-            total += pm.bernoulli_like([0,0], winners[missed])
-        total += pm.bernoulli_like([0,0], losers[sunk])
-        total += pm.bernoulli_like([0,1], winners[sunk])
-        # Anybody after the winning hit must have missed 1 shot
-        for missed in range(sunk+1, len(winners)):
-            total += pm.bernoulli_like([0], losers[missed])
-            total += pm.bernoulli_like([0], winners[missed])
-        losers_first.append(total)
         
-        chance_of_winners_first = math.fsum(map(math.exp, winners_first))
-        chance_of_losers_first = math.fsum(map(math.exp, losers_first))
+    count=0
+    total=0
+    
+    orderings = generate_orderings(winners, losers, partial=partial)
+    for (players, winning_team) in orderings:
+        count += 1
+        total+=match_eval_markov(players, winning_team)
 
-        return (chance_of_winners_first + chance_of_losers_first)/2.0
+    return total/count
+
+def match_eval_markov(players, winning_team):
+    if len(players) % 2 != 0:
+        raise ValueError("The number of players must be even")
+
+    if winning_team != 0 and winning_team != 1:
+        raise ValueError("The winning_team must be either 0 or 1 " +
+                         "but was " + str(winning_team))
+
+    chain = markov.Chain()
+    states = {}
+    winners_win = chain.new_state()
+    losers_win = chain.new_state()
+    player_states = []
+    player_stats = []
+    for player in players:
+        player_states.append(chain.new_state())
+        player_stats.append(player)
+
+    for i in range(len(player_states)):
+        next_player_index = (i+1) % len(player_states)
+        next_player_state = player_states[next_player_index]
+        chance_of_win = player_stats[i]
+        chance_of_miss = 1. - chance_of_win
+        chain.set_transition(player_states[i], 
+                             next_player_state,
+                             chance_of_miss)
+
+        end_state = None
+        if i % 2 == winning_team:
+            end_state = winners_win
+        else:
+            end_state = losers_win
+        chain.set_transition(player_states[i], end_state, chance_of_win)
+
+    result = chain.steady_state(player_states[0])
+    return result[winners_win]
 
 def all_matches(matches):
     match_vars = []
@@ -100,12 +115,18 @@ def all_matches(matches):
     for i in range(0,len(matches)):
         match=matches[i]
         match_name = 'match_%i' % i
-        match_var = pm.Deterministic(eval = match_win,
+        if match.ordered:
+            match_eval_method = match_eval_markov_partial_ordered
+        else:
+            match_eval_method = match_eval_markov_unordered
+
+        match_var = pm.Deterministic(eval = match_eval_method,
                                      doc = match_name,
                                      name = match_name,
                                      parents = {'winners': match.winners,
                                                 'losers': match.losers},
-                                     plot=False);
+                                     plot=False,
+                                     dtype=float);
         
         match_vars.append(match_var)
 
