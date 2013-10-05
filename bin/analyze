@@ -30,7 +30,10 @@ def new_player(name):
     return pm.Beta(name + "_sink", alpha=3, beta=3, value=0.5)
 
 def players_from_match(match):
-    return match['winners'] + match['losers']
+    if "players" in match:
+        return match['players']
+    else:
+        return match['winners'] + match['losers']
 
 def json_to_matches(matches_json):
     players_for_each_match = map(players_from_match, matches_json)
@@ -41,12 +44,20 @@ def json_to_matches(matches_json):
         
     matches = []
     for match in matches_json:
-        winner_vars = map(lambda p: player_var_lookup[p], match['winners'])
-        losers_vars = map(lambda p: player_var_lookup[p], match['losers'])
-        ordered = False
-        if "ordered" in match:
-            ordered = match["ordered"]
-        newMatch = analyze.Match(winner_vars, losers_vars, ordered)
+        if "players" in match:
+            pass
+            player_vars = map(lambda p: player_var_lookup[p], match['players'])
+            winning_team = match['winning-team']
+            newMatch = analyze.Match(player_vars, winning_team, "partial")
+        else:
+            winner_vars = map(lambda p: player_var_lookup[p], match['winners'])
+            losers_vars = map(lambda p: player_var_lookup[p], match['losers'])
+            ordered = "unordered"
+            if "ordered" in match:
+                ordered = "partial"
+            
+            players = analyze.zip_lists(winner_vars, losers_vars)
+            newMatch = analyze.Match(players, 0, ordered)
         matches.append(newMatch)
 
     return matches
@@ -62,7 +73,7 @@ matches = json_to_matches(matches_json)
 all_match_vars = analyze.all_matches(matches)
 match_outcomes = analyze.outcomes(all_match_vars)
 
-players = list(set(itertools.chain(*map(lambda m: m.players(), matches))))
+players = list(set(itertools.chain(*map(lambda m: m.players, matches))))
 all_vars = players + all_match_vars + match_outcomes
 
 model = pm.MCMC(all_vars)
@@ -81,25 +92,13 @@ if args.plot:
 
 correct = 0
 for match in matches:
-    winners = map(lambda p: stats[p.__name__]['mean'], match.winners)
-    losers = map(lambda p: stats[p.__name__]['mean'], match.losers)
+    players = map(lambda p: stats[p.__name__]['mean'], match.players)
 
-    if match.ordered:
-        match_eval_method = analyze.match_eval_markov_partial_ordered
-    else:
-        match_eval_method = analyze.match_eval_markov_unordered
-
-    chance_of_win = match_eval_method(winners, losers)
+    chance_of_win = analyze.match_eval_markov(players, 
+                                              match.winning_team,
+                                              match.order)
     if chance_of_win > 0.5:
         correct += 1
 
-    # Reverse the losers to maintain partial ordering.  Reversing doesn't 
-    # matter for the non-ordered matches, so it's safe to always reverse
-    losers.reverse()
-    chance_of_win = match_eval_method(losers, winners)
-    if chance_of_win < 0.5:
-        correct += 1
-
-    
 print "Correctly guessed %(correct)d out of %(total)d matches" % \
-      {"correct": correct, "total": len(matches) * 2 }
+      {"correct": correct, "total": len(matches) }

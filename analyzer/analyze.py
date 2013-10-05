@@ -2,26 +2,18 @@ import pymc as pm
 import markov
 import math
 import itertools
+import functools
 
 class Match(object):
-    def __init__(self, winners, losers, ordered=False):
-        self.winners = winners
-        self.losers = losers
-        self.ordered = ordered
+    def __init__(self, players, winning_team, order="unordered"):
+        self.order = order
+        self.players = players
+        self.winning_team = winning_team
 
-        # If both winners and loser are just a single person, then they
-        # are effectively ordered
-        if not isinstance(winners, list) and not isinstance(losers, list):
-            self.ordered = True
-
-        if not isinstance(winners, list):
-            self.winners = [self.winners]
-        if not isinstance(losers, list):
-            self.losers = [self.losers]
-
-    def players(self):
-        return self.winners + self.losers
-
+        # If there are only two players then they are at least partially
+        # ordered
+        if order == "unordered" and len(players) == 2:
+            self.order = "partial"
 
 def zip_lists(list_a, list_b):
     result = []
@@ -68,11 +60,26 @@ def _match_eval_markov_unordered(winners, losers, partial):
     orderings = generate_orderings(winners, losers, partial=partial)
     for (players, winning_team) in orderings:
         count += 1
-        total+=match_eval_markov(players, winning_team)
+        total+=match_eval_markov_total(players, winning_team)
 
     return total/count
 
-def match_eval_markov(players, winning_team):
+def match_eval_markov(players, winning_team, order):
+    if order == "total":
+        return match_eval_markov_total(players, winning_team)
+    else:
+        teams = [[],[]]
+        for i in range(len(players)):
+            teams[i % 2].append(players[i])
+            
+        winners = teams[winning_team]
+        losers = teams[(winning_team + 1) % 2]
+        if order == "unordered":
+            return match_eval_markov_unordered(winners, losers)
+        else:
+            return match_eval_markov_partial_ordered(winners, losers)
+
+def match_eval_markov_total(players, winning_team):
     if len(players) % 2 != 0:
         raise ValueError("The number of players must be even")
 
@@ -115,16 +122,14 @@ def all_matches(matches):
     for i in range(0,len(matches)):
         match=matches[i]
         match_name = 'match_%i' % i
-        if match.ordered:
-            match_eval_method = match_eval_markov_partial_ordered
-        else:
-            match_eval_method = match_eval_markov_unordered
 
-        match_var = pm.Deterministic(eval = match_eval_method,
+        parents = {'players': match.players,
+                   'winning_team': match.winning_team,
+                   'order': match.order}
+        match_var = pm.Deterministic(eval = match_eval_markov,
                                      doc = match_name,
                                      name = match_name,
-                                     parents = {'winners': match.winners,
-                                                'losers': match.losers},
+                                     parents = parents,
                                      plot=False,
                                      dtype=float);
         
