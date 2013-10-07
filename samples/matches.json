@@ -1,0 +1,731 @@
+[
+    {
+        "ordered": false,
+        "winners": [
+            "sloyer",
+            "matt"
+        ],
+        "losers": [
+            "jeff",
+            "chris"
+        ],
+        "date": "2013-09-03T13:00-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "jeff",
+            "chris"
+        ],
+        "losers": [
+            "sloyer",
+            "matt"
+        ],
+        "date": "2013-09-03T13:30-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "jeff",
+            "chris"
+        ],
+        "losers": [
+            "sloyer",
+            "matt"
+        ],
+        "date": "2013-09-04T12:30-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "jeff",
+            "chris"
+        ],
+        "losers": [
+            "sloyer",
+            "matt"
+        ],
+        "foul-end": true,
+        "date": "2013-09-04T12:45-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "sloyer",
+            "matt"
+        ],
+        "losers": [
+            "jeff",
+            "chris"
+        ],
+        "date": "2013-09-04T13:15-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "sloyer",
+            "matt"
+        ],
+        "losers": [
+            "jeff",
+            "chris"
+        ],
+        "foul-end": true,
+        "date": "2013-09-04T15:15-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "sloyer",
+            "matt"
+        ],
+        "losers": [
+            "jeff",
+            "chris"
+        ],
+        "foul-end": true,
+        "date": "2013-09-04T15:27-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "jeff",
+            "sloyer"
+        ],
+        "losers": [
+            "chris",
+            "matt"
+        ],
+        "date": "2013-09-04T15:51-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "chuck",
+            "bill"
+        ],
+        "losers": [
+            "chris",
+            "matt"
+        ],
+        "winner-left": 0,
+        "loser-left": 1,
+        "date": "2013-09-04T17:00-04:00"
+    },
+
+    {
+        "ordered": false,
+        "winners": [
+            "chris",
+            "matt"
+        ],
+        "losers": [
+            "jeff",
+            "sloyer"
+        ],
+        "date": "2013-09-05T13:00-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "chris",
+            "matt"
+        ],
+        "losers": [
+            "jeff",
+            "sloyer"
+        ],
+        "winner-left": 0,
+        "loser-left": 0,
+        "date": "2013-09-05T13:17-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "sloyer"
+        ],
+        "losers": [
+            "jeff"
+        ],
+        "winner-left": 0,
+        "loser-left": 0,
+        "date": "2013-09-05T16:24-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "chris"
+        ],
+        "losers": [
+            "sloyer"
+        ],
+        "winner-left": 0,
+        "loser-left": 0,
+        "date": "2013-09-06T11:32-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "sloyer"
+        ],
+        "losers": [
+            "chris"
+        ],
+        "winner-left": 0,
+        "loser-left": 1,
+        "date": "2013-09-06T11:45-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "matt"
+        ],
+        "losers": [
+            "beavers"
+        ],
+        "winner-left": 0,
+        "loser-left": 0,
+        "date": "2013-09-06T12:30-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "matt"
+        ],
+        "losers": [
+            "chris"
+        ],
+        "winner-left": 0,
+        "loser-left": 0,
+        "date": "2013-09-06T14:23-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "matt"
+        ],
+        "losers": [
+            "chris"
+        ],
+        "winner-left": 0,
+        "loser-left": 2,
+        "date": "2013-09-06T14:39-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "matt",
+            "chris"
+        ],
+        "losers": [
+            "sloyer",
+            "jeff"
+        ],
+        "winner-left": 0,
+        "loser-left": 2,
+        "date": "2013-09-06T16:44-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "chris",
+            "matt"
+        ],
+        "losers": [
+            "sloyer",
+            "chuck"
+        ],
+        "foul-end": true,
+        "winner-left": 1,
+        "loser-left": 0,
+        "date": "2013-09-06T17:06-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "matt",
+            "jeff"
+        ],
+        "losers": [
+            "sloyer",
+            "chris"
+        ],
+        "winner-left": 0,
+        "loser-left": 3,
+        "date": "2013-09-09T13:15-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "matt",
+            "jeff"
+        ],
+        "losers": [
+            "sloyer",
+            "chris"
+        ],
+        "foul-end": true,
+        "winner-left": 0,
+        "loser-left": 2,
+        "date": "2013-09-09T13:30-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "matt",
+            "jeff"
+        ],
+        "losers": [
+            "sloyer",
+            "chris"
+        ],
+        "winner-left": 0,
+        "loser-left": 4,
+        "date": "2013-09-09T13:41-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "matt",
+            "mike"
+        ],
+        "losers": [
+            "sloyer",
+            "jeff"
+        ],
+        "winner-left": 0,
+        "loser-left": 3,
+        "date": "2013-09-10T12:41-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "mike",
+            "sloyer"
+        ],
+        "losers": [
+            "matt",
+            "jeff"
+        ],
+        "foul-end": true,
+        "winner-left": 1,
+        "loser-left": 0,
+        "date": "2013-09-10T13:00-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "matt",
+            "jeff"
+        ],
+        "losers": [
+            "mike",
+            "sloyer"
+        ],
+        "winner-left": 0,
+        "loser-left": 0,
+        "date": "2013-09-10T13:18-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "chris"
+        ],
+        "losers": [
+            "sloyer"
+        ],
+        "foul-end": true,
+        "winner-left": 2,
+        "loser-left": 0,
+        "date": "2013-09-10T14:45-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "sloyer"
+        ],
+        "losers": [
+            "chris"
+        ],
+        "foul-end": true,
+        "winner-left": 2,
+        "loser-left": 0,
+        "date": "2013-09-10T14:55-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "sloyer"
+        ],
+        "losers": [
+            "chris"
+        ],
+        "foul-end": true,
+        "winner-left": 2,
+        "loser-left": 1,
+        "date": "2013-09-10T15:10-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "sloyer"
+        ],
+        "losers": [
+            "chris"
+        ],
+        "winner-left": 0,
+        "loser-left": 2,
+        "date": "2013-09-10T15:27-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "chris"
+        ],
+        "losers": [
+            "sloyer"
+        ],
+        "foul-end": true,
+        "winner-left": 6,
+        "loser-left": 5,
+        "date": "2013-09-12T14:50-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "chris"
+        ],
+        "losers": [
+            "sloyer"
+        ],
+        "winner-left": 0,
+        "loser-left": 1,
+        "date": "2013-09-11T15:00-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "mike",
+            "jeff"
+        ],
+        "losers": [
+            "sloyer",
+            "matt"
+        ],
+        "winner-left": 0,
+        "loser-left": 2,
+        "date": "2013-09-12T13:08-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "mike",
+            "jeff"
+        ],
+        "losers": [
+            "sloyer",
+            "matt"
+        ],
+        "winner-left": 0,
+        "loser-left": 3,
+        "date": "2013-09-12T13:27-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "chuck"
+        ],
+        "losers": [
+            "matt"
+        ],
+        "winner-left": 0,
+        "loser-left": 0,
+        "date": "2013-09-13T16:20-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "sloyer"
+        ],
+        "losers": [
+            "chris"
+        ],
+        "winner-left": 0,
+        "loser-left": 1,
+        "date": "2013-09-16T08:24-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "bill"
+        ],
+        "losers": [
+            "chuck"
+        ],
+        "winner-left": 0,
+        "loser-left": 0,
+        "date": "2013-09-16T16:30-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "chuck"
+        ],
+        "losers": [
+            "bill"
+        ],
+        "winner-left": 0,
+        "loser-left": 2,
+        "date": "2013-09-16T16:35-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "sloyer"
+        ],
+        "losers": [
+            "matt"
+        ],
+        "foul-end": true,
+        "winner-left": 3,
+        "loser-left": 0,
+        "date": "2013-09-17T12:42-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "matt"
+        ],
+        "losers": [
+            "sloyer"
+        ],
+        "winner-left": 0,
+        "loser-left": 2,
+        "date": "2013-09-17T12:54-04:00"
+    },
+    {
+        "ordered": false,
+        "winners": [
+            "matt",
+            "sloyer"
+        ],
+        "losers": [
+            "chuck",
+            "bill"
+        ],
+        "winner-left": 0,
+        "loser-left": 2,
+        "date": "2013-09-17T13:08-04:00"
+    },
+    {
+        "ordered": true,
+        "winners": [
+            "chris"
+        ],
+        "losers": [
+            "chuck"
+        ],
+        "winner-left": 0,
+        "loser-left": 2,
+        "date": "2013-09-18T17:35-04:00"
+    },
+    {
+        "players": [
+            "chris",
+            "matt",
+            "sloyer",
+            "jeff"
+        ],
+        "winning-team": 1,
+        "loser-left": 6,
+        "winner-left": 0,
+        "date": "2013-09-23T13:28-04:00"
+    },
+    {
+        "players": [
+            "matt",
+            "sloyer",
+            "jeff",
+            "chris"
+        ],
+        "winning-team": 1,
+        "loser-left": 5,
+        "winner-left": 2,
+        "foul-end": true,
+        "date": "2013-09-23T13:37-04:00"
+    },
+    {
+        "players": [
+            "sloyer",
+            "jeff",
+            "chris",
+            "matt"
+        ],
+        "winning-team": 1,
+        "loser-left": 1,
+        "winner-left": 0,
+        "date": "2013-09-24T13:16-04:00"
+    },
+    {
+        "players": [
+            "chris",
+            "matt",
+            "sloyer",
+            "jeff"
+        ],
+        "winning-team": 0,
+        "loser-left": 1,
+        "winner-left": 0,
+        "foul-end": true,
+        "date": "2013-09-24T13:30-04:00"
+    },
+    {
+        "players": [
+            "matt",
+            "chris",
+            "john (janine's nephew)",
+            "jeff"
+        ],
+        "winning-team": 1,
+        "loser-left": 0,
+        "winner-left": 0,
+        "date": "2013-09-25T13:10-04:00"
+    },
+    {
+        "players": [
+            "chris",
+            "beavers",
+            "kishore",
+            "sloyer"
+        ],
+        "winning-team": 0,
+        "loser-left": 0,
+        "winner-left": 5,
+        "foul-end": true,
+        "date": "2013-09-27T17:15-04:00"
+    },
+    {
+        "players": [
+            "chris",
+            "sloyer",
+            "matt",
+            "jeff"
+        ],
+        "winning-team": 0,
+        "loser-left": 3,
+        "winner-left": 0,
+        "date": "2013-09-30T13:08-04:00"
+    },
+    {
+        "players": [
+            "sloyer",
+            "chris",
+            "jeff",
+            "matt"
+        ],
+        "winning-team": 1,
+        "loser-left": 1,
+        "winner-left": 0,
+        "date": "2013-09-30T13:32-04:00"
+    },
+    {
+        "players": [
+            "denny",
+            "chuck"
+        ],
+        "winning-team": 1,
+        "loser-left": 1,
+        "winner-left": 0,
+        "date": "2013-09-30T13:50-04:00"
+    },
+    {
+        "players": [
+            "matt",
+            "sloyer",
+            "chris",
+            "jeff"
+        ],
+        "winning-team": 0,
+        "loser-left": 2,
+        "winner-left": 0,
+        "date": "2013-10-01T13:00-04:00"
+    },
+    {
+        "players": [
+            "bill",
+            "chuck"
+        ],
+        "winning-team": 0,
+        "loser-left": 2,
+        "winner-left": 0,
+        "date": "2013-10-01T13:00-04:00"
+    },
+    {
+        "players": [
+            "sloyer",
+            "chris",
+            "matt",
+            "jeff"
+        ],
+        "winning-team": 1,
+        "loser-left": 0,
+        "winner-left": 0,
+        "date": "2013-10-02T13:10-04:00"
+    },
+    {
+        "players": [
+            "jeff",
+            "sloyer"
+        ],
+        "winning-team": 0,
+        "loser-left": 0,
+        "winner-left": 0,
+        "date": "2013-10-02T14:07-04:00"
+    },
+    {
+        "players": [
+            "bill",
+            "matt",
+            "jeff",
+            "kishore"
+        ],
+        "winning-team": 0,
+        "loser-left": 3,
+        "winner-left": 0,
+        "date": "2013-10-03T13:10-04:00"
+    },
+    {
+        "players": [
+            "matt",
+            "jeff",
+            "sloyer",
+            "chris"
+        ],
+        "winning-team": 0,
+        "loser-left": 5,
+        "winner-left": 0,
+        "date": "2013-10-04T14:35-04:00"
+    },
+    {
+        "players": [
+            "bill",
+            "chuck"
+        ],
+        "winning-team": 0,
+        "loser-left": 1,
+        "winner-left": 0,
+        "date": "2013-10-04T14:30-04:00"
+    },
+    {
+        "players": [
+            "jeff",
+            "sloyer",
+            "chris",
+            "matt"
+        ],
+        "winning-team": 1,
+        "loser-left": 1,
+        "winner-left": 0,
+        "date": "2013-10-04T14:55-04:00"
+    }
+]
