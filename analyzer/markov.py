@@ -4,10 +4,17 @@ class Chain(object):
     def __init__(self):
         self.matrix = None
         self.states = {}
-        
+        self.states_by_label = {}
 
-    def new_state(self):
-        new_state = State()
+    def new_state(self, label=None):
+        new_state = State(label)
+        if label is not None:
+            if label in self.states_by_label:
+                raise ValueError("The state label " + label + " is already " +
+                                 "taken")
+        
+            self.states_by_label[label] = new_state
+
         new_index = 0
 
         if self.matrix is None:
@@ -20,6 +27,12 @@ class Chain(object):
         self.states[new_state] = new_index
         return new_state
 
+
+    def get_state(self, label):
+        if label in self.states_by_label:
+            return self.states_by_label[label]
+        else:
+            return None
 
     def set_transition(self, from_state, to_state, chance):
         if from_state not in self.states:
@@ -112,7 +125,7 @@ class Chain(object):
 
 
 class State(object):
-    def __init__(self):
-        pass
+    def __init__(self, label=None):
+        self.label = label
     
 

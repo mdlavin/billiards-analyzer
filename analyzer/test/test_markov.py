@@ -26,6 +26,21 @@ class ChainTest(unittest.TestCase):
         self.assertEqual(1, chain.states[state2])
         self.assertNotEqual(state, state2)
         
+    def test_state_label(self):
+        chain = markov.Chain()
+        state = chain.new_state('label1')
+        self.assertEqual(state, chain.get_state('label1'))
+
+    def test_unqiue_state_labels(self):
+        chain = markov.Chain()
+        state = chain.new_state('label1')
+        with self.assertRaises(ValueError):
+            chain.new_state('label1')
+
+    def test_get_state_nonexistent(self):
+        chain = markov.Chain()
+        self.assertEquals(None, chain.get_state('label1'))
+
     def test_set_transition(self):
         chain = markov.Chain()
         state = chain.new_state()
