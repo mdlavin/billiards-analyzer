@@ -48,6 +48,14 @@ class ChainTest(unittest.TestCase):
         chain.set_transition(state, state2, 0.5)
         self.assertEqual(0.5, chain.matrix[1,0])
 
+    def test_get_transition(self):
+        chain = markov.Chain()
+        state = chain.new_state()
+        state2 = chain.new_state()
+        chain.set_transition(state, state2, 0.5)
+        trans = chain.get_transition(state, state2)
+        self.assertAlmostEqual(0.5, trans)
+
     def test_steady_state(self):
         chain = markov.Chain()
         city = chain.new_state()

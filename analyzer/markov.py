@@ -52,6 +52,17 @@ class Chain(object):
         to_index = self.states[to_state]
         self.matrix[to_index,from_index] = chance
 
+    def get_transition(self, from_state, to_state):
+        if from_state not in self.states:
+            raise Exception("The from_state is not part of this chain")
+        if to_state not in self.states:
+            raise Exception("The to_state is not a part of this chain")
+        if from_state == to_state:
+            raise Exception("The from_state and to_state much be different")
+            
+        from_index = self.states[from_state]
+        to_index = self.states[to_state]
+        return self.matrix[to_index,from_index]
 
     def _create_start_vector(self, start_state=None):
         (rows,cols) = self.matrix.shape
