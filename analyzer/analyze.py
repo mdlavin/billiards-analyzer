@@ -3,6 +3,7 @@ import markov
 import math
 import itertools
 import functools
+import collections
 
 class Match(object):
     def __init__(self, players, winning_team, order="unordered"):
@@ -25,59 +26,62 @@ def zip_lists(list_a, list_b):
             result.append(list_b[i])
     return result
 
+def reorder(players, winning_team, order_variation):
+    # For odd orderings, the winning team's position changes
+    if order_variation % 2 != 0:
+        winning_team = (winning_team + 1) % 2
 
-def generate_orderings(winners, losers, partial=False):
-    results = []
-    winner_orderings = []
-    loser_orderings = []
-    if not partial:
-        winner_orderings = itertools.permutations(winners)
-        loser_orderings = itertools.permutations(losers)
-        all_pairings = itertools.product(winner_orderings, loser_orderings)
-        for (winners,losers) in all_pairings:
-            results.append( (zip_lists(winners, losers), 0) )
-            results.append( (zip_lists(losers, winners), 1) )
-    else:
-        players = zip_lists(winners, losers)
-        for n in range(len(players)):
-            results.append( (players[n:] + players[:n] , n % 2) )
+    if len(players) % 2 != 0:
+        raise ValueError("There must be an even number of players")
 
-    return results
+    if len(players) > 4:
+        raise ValueError("More than 4 players is not currently supported")
 
-def match_eval_markov_unordered(winners, losers):
-    return _match_eval_markov_unordered(winners, losers, False)
+    if order_variation == 0:
+        return (players, winning_team)
+    
+    if order_variation < len(players):
+        deque = collections.deque(players)
+        deque.rotate(order_variation)
+        return (list(deque), winning_team)
 
-def match_eval_markov_partial_ordered(winners, losers):
-    return _match_eval_markov_unordered(winners, losers, True)
+    if len(players) <= 2:
+        raise ValueError("There are only two orderings for two player matches")
 
-def _match_eval_markov_unordered(winners, losers, partial):
-    if len(winners) != len(losers):
-        raise ValueError("The number of winners and losers must be the same")
-        
+    temp_players = list(players)
+    temp_players[0] = players[2]
+    temp_players[2] = players[0]
+    
+    if order_variation >= len(players) * 2:
+        raise ValueError("There are only eight possible orderings with " +
+                         "four players")
+
+    deque = collections.deque(temp_players)
+    deque.rotate(order_variation-len(players))
+    return (list(deque), winning_team)
+
+    
+def match_eval_markov_unordered(players, winning_team):
+    orderings = range(len(players) * 2)
+    return _match_eval_markov(players, winning_team, orderings)
+
+def match_eval_markov_partial_ordered(players, winning_team):
+    orderings = range(len(players))
+    return _match_eval_markov(players, winning_team, orderings)
+
+def _match_eval_markov(players, winning_team, orderings):
     count=0
     total=0
     
-    orderings = generate_orderings(winners, losers, partial=partial)
-    for (players, winning_team) in orderings:
+    for ordering in orderings:
+        total += match_eval_markov(players, winning_team, ordering)
         count += 1
-        total+=match_eval_markov_total(players, winning_team)
 
     return total/count
 
 def match_eval_markov(players, winning_team, order):
-    if order == "total":
-        return match_eval_markov_total(players, winning_team)
-    else:
-        teams = [[],[]]
-        for i in range(len(players)):
-            teams[i % 2].append(players[i])
-            
-        winners = teams[winning_team]
-        losers = teams[(winning_team + 1) % 2]
-        if order == "unordered":
-            return match_eval_markov_unordered(winners, losers)
-        else:
-            return match_eval_markov_partial_ordered(winners, losers)
+    (players, winning_team) = reorder(players, winning_team, order)
+    return match_eval_markov_total(players, winning_team)
 
 def build_markov_chain(players, winning_team):
     if len(players) % 2 != 0:
@@ -125,9 +129,18 @@ def all_matches(matches):
         match=matches[i]
         match_name = 'match_%i' % i
 
+        if match.order == "unordered":
+            order = pm.DiscreteUniform('match_%i_order' % i,
+                                       lower=0,
+                                       upper=len(match.players)*2 - 1)
+        else:
+            order = pm.DiscreteUniform('match_%i_order' % i,
+                                       lower=0,
+                                       upper=len(match.players) - 1)
+
         parents = {'players': match.players,
                    'winning_team': match.winning_team,
-                   'order': match.order}
+                   'order': order}
         match_var = pm.Deterministic(eval = match_eval_markov,
                                      doc = match_name,
                                      name = match_name,

@@ -15,51 +15,44 @@ class TestZipList(unittest.TestCase):
         zipped = analyze.zip_lists(['a'],['b','d'])
         self.assertEqual(['a','b','d'], zipped)
 
-class TestGenerateOrderings(unittest.TestCase):
-    def test_one_on_one(self):
-        orderings = analyze.generate_orderings(['a'],['b'], False)
-        self.assertEquals(2, len(orderings))
-        self.assertTrue((['a','b'], 0) in orderings)
-        self.assertTrue((['b','a'], 1) in orderings)
+class TestReorder(unittest.TestCase):
+    def test_reorder_two(self):
+        self.assertEquals((['a','b'],1), analyze.reorder(['a','b'], 1, 0))
+        self.assertEquals((['b','a'],0), analyze.reorder(['a','b'], 1, 1))
+        
+    def test_reorder_two_ordering_too_large(self):
+        with self.assertRaises(ValueError):
+            analyze.reorder(['a','b'], 0, 2)
 
-    def test_one_on_one_partial(self):
-        orderings = analyze.generate_orderings(['a'],['b'], True)
-        self.assertEquals(2, len(orderings))
-        self.assertTrue((['a','b'], 0) in orderings)
-        self.assertTrue((['b','a'], 1) in orderings)
-
-    def test_two_on_two(self):
-        orderings = analyze.generate_orderings(['a','b'],['c','d'], False)
-        self.assertEquals(8, len(orderings))
-        self.assertTrue((['a','c','b','d'],0) in orderings)
-        self.assertTrue((['a','d','b','c'],0) in orderings)
-        self.assertTrue((['b','c','a','d'],0) in orderings)
-        self.assertTrue((['b','d','a','c'],0) in orderings)
-        self.assertTrue((['c','a','d','b'],1) in orderings)
-        self.assertTrue((['c','b','d','a'],1) in orderings)
-        self.assertTrue((['d','a','c','b'],1) in orderings)
-        self.assertTrue((['d','b','c','a'],1) in orderings)
-
-    def test_two_on_two_partial(self):
-        orderings = analyze.generate_orderings(['a','b'],['c','d'], True)
-        self.assertEquals(4, len(orderings))
-        self.assertTrue((['a','c','b','d'],0) in orderings)
-        self.assertTrue((['b','d','a','c'],0) in orderings)
-        self.assertTrue((['c','b','d','a'],1) in orderings)
-        self.assertTrue((['d','a','c','b'],1) in orderings)
-
+    def test_reorder_four(self):
+        players = ['a','b','c','d']
+        self.assertEquals((['a','b','c','d'],0), analyze.reorder(players, 0, 0))
+        self.assertEquals((['d','a','b','c'],1), analyze.reorder(players, 0, 1))
+        self.assertEquals((['c','d','a','b'],0), analyze.reorder(players, 0, 2))
+        self.assertEquals((['b','c','d','a'],1), analyze.reorder(players, 0, 3))
+        self.assertEquals((['c','b','a','d'],0), analyze.reorder(players, 0, 4))
+        self.assertEquals((['d','c','b','a'],1), analyze.reorder(players, 0, 5))
+        self.assertEquals((['a','d','c','b'],0), analyze.reorder(players, 0, 6))
+        self.assertEquals((['b','a','d','c'],1), analyze.reorder(players, 0, 7))
+        
+    def test_reorder_four_ordering_too_large(self):
+        with self.assertRaises(ValueError):
+            analyze.reorder(['a','b','c','d'], 0, 8)
 
 class TestMatchEvalMarkovUnordered(unittest.TestCase):
     def test_one_on_one_even(self):
-        chance_of_win = analyze.match_eval_markov_unordered([0.5],[0.5])
+        players = [0.5, 0.5, 0.5, 0.5]
+        chance_of_win = analyze.match_eval_markov_unordered(players, 0)
         self.assertAlmostEqual(0.5, chance_of_win)
 
     def test_one_on_one_uneven(self):
-        chance_of_win = analyze.match_eval_markov_unordered([0.75],[0.50])
+        players = [0.75, 0.5, 0.75, 0.5]
+        chance_of_win = analyze.match_eval_markov_unordered(players, 0)
         self.assertLess(0.5, chance_of_win)
 
     def test_one_on_one_uneven(self):
-        chance_of_win = analyze.match_eval_markov_unordered([0.50],[0.75])
+        players = [0.5, 0.75, 0.5, 0.75]
+        chance_of_win = analyze.match_eval_markov_unordered(players, 0)
         self.assertGreater(0.5, chance_of_win)
 
 class TestBuildMarkovChain(unittest.TestCase):
