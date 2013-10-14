@@ -10,8 +10,9 @@ class Chain(object):
         new_state = State(label)
         if label is not None:
             if label in self.states_by_label:
-                raise ValueError("The state label " + label + " is already " +
-                                 "taken")
+                label_str = str(label)
+                raise ValueError("The state label " + label_str + " is " + 
+                                 "already taken")
         
             self.states_by_label[label] = new_state
 
