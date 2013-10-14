@@ -61,3 +61,26 @@ class TestMatchEvalMarkovUnordered(unittest.TestCase):
     def test_one_on_one_uneven(self):
         chance_of_win = analyze.match_eval_markov_unordered([0.50],[0.75])
         self.assertGreater(0.5, chance_of_win)
+
+class TestBuildMarkovChain(unittest.TestCase):
+    def test_two_players_even(self):
+        chain = analyze.build_markov_chain([0.5, 0.5], 0)
+        p1_state = chain.get_state( (0,0,0) )
+        p1_wins = chain.get_state('winners_win')
+        p2_state = chain.get_state( (1,0,0) )
+        p2_wins = chain.get_state('losers_win')
+        self.assertAlmostEqual(0.5, chain.get_transition(p1_state, p1_wins)) 
+        self.assertAlmostEqual(0.5, chain.get_transition(p2_state, p2_wins)) 
+        self.assertAlmostEqual(0.5, chain.get_transition(p1_state, p2_state)) 
+        self.assertAlmostEqual(0.5, chain.get_transition(p2_state, p1_state)) 
+
+    def test_two_players_uneven(self):
+        chain = analyze.build_markov_chain([0.5, 0.75], 0)
+        p1_state = chain.get_state( (0,0,0) )
+        p1_wins = chain.get_state('winners_win')
+        p2_state = chain.get_state( (1,0,0) )
+        p2_wins = chain.get_state('losers_win')
+        self.assertAlmostEqual(0.5, chain.get_transition(p1_state, p1_wins)) 
+        self.assertAlmostEqual(0.75, chain.get_transition(p2_state, p2_wins)) 
+        self.assertAlmostEqual(0.5, chain.get_transition(p1_state, p2_state)) 
+        self.assertAlmostEqual(0.25, chain.get_transition(p2_state, p1_state)) 

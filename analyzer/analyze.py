@@ -79,7 +79,7 @@ def match_eval_markov(players, winning_team, order):
         else:
             return match_eval_markov_partial_ordered(winners, losers)
 
-def match_eval_markov_total(players, winning_team):
+def build_markov_chain(players, winning_team):
     if len(players) % 2 != 0:
         raise ValueError("The number of players must be even")
 
@@ -88,33 +88,35 @@ def match_eval_markov_total(players, winning_team):
                          "but was " + str(winning_team))
 
     chain = markov.Chain()
-    states = {}
-    winners_win = chain.new_state()
-    losers_win = chain.new_state()
-    player_states = []
-    player_stats = []
-    for player in players:
-        player_states.append(chain.new_state())
-        player_stats.append(player)
+    winners_win = chain.new_state('winners_win')
+    losers_win = chain.new_state('losers_win')
+    for player_num in range(len(players)):
+        chain.new_state( (player_num, 0, 0) )
 
-    for i in range(len(player_states)):
-        next_player_index = (i+1) % len(player_states)
-        next_player_state = player_states[next_player_index]
-        chance_of_win = player_stats[i]
+    for i in range(len(players)):
+        next_player_index = (i+1) % len(players)
+        next_player_state = chain.get_state( (next_player_index, 0, 0) )
+        chance_of_win = players[i]
         chance_of_miss = 1. - chance_of_win
-        chain.set_transition(player_states[i], 
+        player_state = chain.get_state( (i, 0, 0) )
+        chain.set_transition(player_state, 
                              next_player_state,
                              chance_of_miss)
 
-        end_state = None
         if i % 2 == winning_team:
             end_state = winners_win
         else:
             end_state = losers_win
-        chain.set_transition(player_states[i], end_state, chance_of_win)
+        chain.set_transition(player_state, end_state, chance_of_win)
+    
+    return chain
 
-    result = chain.steady_state(player_states[0])
-    return result[winners_win]
+def match_eval_markov_total(players, winning_team):
+    chain = build_markov_chain(players, winning_team)
+    winners_win_state = chain.get_state('winners_win')
+    player_0_start = chain.get_state( (0, 0, 0) )
+    result = chain.steady_state(player_0_start)
+    return result[winners_win_state]
 
 def all_matches(matches):
     match_vars = []
