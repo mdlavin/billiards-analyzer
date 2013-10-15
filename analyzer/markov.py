@@ -46,7 +46,7 @@ class Chain(object):
         if chance < 0 or chance > 1:
             raise Exception("The chance of the state transition must not be " +
                             "less than 0 or greater than 1, but the value " + 
-                            chance + " was provided")
+                            str(chance) + " was provided")
 
         from_index = self.states[from_state]
         to_index = self.states[to_state]
