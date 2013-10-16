@@ -82,6 +82,13 @@ def _match_eval_markov(players, winning_team, orderings):
 def match_eval_markov(players, winning_team, order):
     (players, winning_team) = reorder(players, winning_team, order)
     return match_eval_markov_total(players, winning_team)
+    
+def value(v):
+    if isinstance(v, pm.Variable):
+        return v.value
+    else:
+        return v
+
 
 def build_markov_chain(players, winning_team):
     if len(players) % 2 != 0:
@@ -100,7 +107,7 @@ def build_markov_chain(players, winning_team):
     for i in range(len(players)):
         next_player_index = (i+1) % len(players)
         next_player_state = chain.get_state( (next_player_index, 0, 0) )
-        chance_of_win = players[i]
+        chance_of_win = value(players[i]['sink'])
         chance_of_miss = 1. - chance_of_win
         player_state = chain.get_state( (i, 0, 0) )
         chain.set_transition(player_state, 
@@ -121,6 +128,11 @@ def match_eval_markov_total(players, winning_team):
     player_0_start = chain.get_state( (0, 0, 0) )
     result = chain.steady_state(player_0_start)
     return result[winners_win_state]
+
+def new_player(name, sink=0.5): 
+    player = {}
+    player['sink'] = pm.Beta(name + "_sink", alpha=3, beta=3, value=sink)
+    return player
 
 def all_matches(matches):
     match_vars = []

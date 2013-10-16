@@ -41,23 +41,38 @@ class TestReorder(unittest.TestCase):
 
 class TestMatchEvalMarkovUnordered(unittest.TestCase):
     def test_one_on_one_even(self):
-        players = [0.5, 0.5, 0.5, 0.5]
+        player1 = analyze.new_player('p1', 0.5)
+        player2 = analyze.new_player('p2', 0.5)
+        player3 = analyze.new_player('p3', 0.5)
+        player4 = analyze.new_player('p4', 0.5)
+        players = [player1, player2, player3, player4]
         chance_of_win = analyze.match_eval_markov_unordered(players, 0)
         self.assertAlmostEqual(0.5, chance_of_win)
 
     def test_one_on_one_uneven(self):
-        players = [0.75, 0.5, 0.75, 0.5]
+        player1 = analyze.new_player('p1', 0.75)
+        player2 = analyze.new_player('p2', 0.5)
+        player3 = analyze.new_player('p3', 0.75)
+        player4 = analyze.new_player('p4', 0.5)
+        players = [player1, player2, player3, player4]
         chance_of_win = analyze.match_eval_markov_unordered(players, 0)
         self.assertLess(0.5, chance_of_win)
 
     def test_one_on_one_uneven(self):
-        players = [0.5, 0.75, 0.5, 0.75]
+        player1 = analyze.new_player('p1', 0.5)
+        player2 = analyze.new_player('p2', 0.75)
+        player3 = analyze.new_player('p3', 0.5)
+        player4 = analyze.new_player('p4', 0.75)
+        players = [player1, player2, player3, player4]
         chance_of_win = analyze.match_eval_markov_unordered(players, 0)
         self.assertGreater(0.5, chance_of_win)
 
 class TestBuildMarkovChain(unittest.TestCase):
     def test_two_players_even(self):
-        chain = analyze.build_markov_chain([0.5, 0.5], 0)
+        player1 = analyze.new_player('p1', 0.5)
+        player2 = analyze.new_player('p2', 0.5)
+        players = [player1, player2]
+        chain = analyze.build_markov_chain(players, 0)
         p1_state = chain.get_state( (0,0,0) )
         p1_wins = chain.get_state('winners_win')
         p2_state = chain.get_state( (1,0,0) )
@@ -68,7 +83,10 @@ class TestBuildMarkovChain(unittest.TestCase):
         self.assertAlmostEqual(0.5, chain.get_transition(p2_state, p1_state)) 
 
     def test_two_players_uneven(self):
-        chain = analyze.build_markov_chain([0.5, 0.75], 0)
+        player1 = analyze.new_player('p1', 0.5)
+        player2 = analyze.new_player('p2', 0.75)
+        players = [player1, player2]
+        chain = analyze.build_markov_chain(players, 0)
         p1_state = chain.get_state( (0,0,0) )
         p1_wins = chain.get_state('winners_win')
         p2_state = chain.get_state( (1,0,0) )
