@@ -24,53 +24,13 @@ while os.path.dirname(path) != path:
         break
     path = os.path.dirname(path)
 
-from analyzer import analyze
+from analyzer import analyze, loader
 
-def players_from_match(match):
-    if "players" in match:
-        return match['players']
-    else:
-        return match['winners'] + match['losers']
-
-def json_to_matches(matches_json):
-    players_for_each_match = map(players_from_match, matches_json)
-    all_player_names = set(itertools.chain(*players_for_each_match))
-    player_lookup = {}
-    for name in all_player_names:
-        player_lookup[name] = analyze.new_player(name)
-        
-    matches = []
-    for match in matches_json:
-        if "players" in match:
-            pass
-            players = map(lambda p: player_lookup[p], match['players'])
-            winning_team = match['winning-team']
-            newMatch = analyze.Match(players, winning_team, "partial")
-        else:
-            winners = map(lambda p: player_lookup[p], match['winners'])
-            losers = map(lambda p: player_lookup[p], match['losers'])
-            ordered = "unordered"
-            if "ordered" in match:
-                ordered = "partial"
-
-            if "foul-end" in match:
-                foul_end = match['foul-end']
-            else:
-                foul_end = False
-            
-            players = analyze.zip_lists(winners, losers)
-            newMatch = analyze.Match(players, 0, ordered, foul_end)
-        matches.append(newMatch)
-
-    return matches
-
-def find_all_players(matches):
-    return set(itertools.chain(*map(players_from_match, matches)))
 
 args = parser.parse_args()
 
 matches_json = json.loads(args.matches.read())
-matches = json_to_matches(matches_json)
+matches = loader.json_to_matches(matches_json)
 
 all_match_vars = analyze.all_matches(matches)
 match_outcomes = analyze.outcomes(all_match_vars)

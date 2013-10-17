@@ -1,20 +1,6 @@
 import unittest
 import analyzer.analyze as analyze
 
-class TestZipList(unittest.TestCase):
-    def test_singles(self):
-        zipped = analyze.zip_lists(['a'],['b'])
-        self.assertEqual(['a','b'], zipped)
-    def test_doubles(self):
-        zipped = analyze.zip_lists(['a','c'],['b','d'])
-        self.assertEqual(['a','b','c','d'], zipped)
-    def test_first_long(self):
-        zipped = analyze.zip_lists(['a','c'],['b'])
-        self.assertEqual(['a','b','c'], zipped)
-    def test_second_long(self):
-        zipped = analyze.zip_lists(['a'],['b','d'])
-        self.assertEqual(['a','b','d'], zipped)
-
 class TestReorder(unittest.TestCase):
     def test_reorder_two(self):
         self.assertEquals((['a','b'],1), analyze.reorder(['a','b'], 1, 0))

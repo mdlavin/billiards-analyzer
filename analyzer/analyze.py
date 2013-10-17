@@ -18,16 +18,6 @@ class Match(object):
         if order == "unordered" and len(players) == 2:
             self.order = "partial"
 
-def zip_lists(list_a, list_b):
-    result = []
-    n = max(len(list_a), len(list_b))
-    for i in range(n):
-        if i < len(list_a):
-            result.append(list_a[i])
-        if i < len(list_b):
-            result.append(list_b[i])
-    return result
-
 def reorder(players, winning_team, order_variation):
     # For odd orderings, the winning team's position changes
     if order_variation % 2 != 0:
