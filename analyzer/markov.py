@@ -97,6 +97,13 @@ class Chain(object):
         return pi
 
 
+    def find_state_by_index(self, index):
+        for (state, i) in self.states.items():
+            if index == i:
+                return state
+        return None
+
+
     def steady_state(self,start_state=None, threshold=10e-10):
         pi = self._create_start_vector(start_state)
 
@@ -113,8 +120,10 @@ class Chain(object):
                     sum += trans[row, col]
                 
             if sum > 1:
+                col_state = self.find_state_by_index(col)
                 raise Exception("The combined probabilities for transtion " + 
-                                "from state " + col + " are larger than 1")
+                                "from state " + str(col_state) + " are " +
+                                "larger than 1")
                 
             trans[col,col] = 1. - sum
 
@@ -140,4 +149,8 @@ class State(object):
     def __init__(self, label=None):
         self.label = label
     
-
+    def __str__(self):
+        if self.label is not None:
+            return str(self.label)
+        else:
+            return object.__str__(self)
