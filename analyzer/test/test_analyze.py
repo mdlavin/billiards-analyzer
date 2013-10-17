@@ -46,7 +46,7 @@ class TestMatchEvalMarkovUnordered(unittest.TestCase):
         player3 = analyze.new_player('p3', 0.5)
         player4 = analyze.new_player('p4', 0.5)
         players = [player1, player2, player3, player4]
-        chance_of_win = analyze.match_eval_markov_unordered(players, 0)
+        chance_of_win = analyze.match_eval_markov_unordered(players, 0, False)
         self.assertAlmostEqual(0.5, chance_of_win)
 
     def test_one_on_one_uneven(self):
@@ -55,7 +55,7 @@ class TestMatchEvalMarkovUnordered(unittest.TestCase):
         player3 = analyze.new_player('p3', 0.75)
         player4 = analyze.new_player('p4', 0.5)
         players = [player1, player2, player3, player4]
-        chance_of_win = analyze.match_eval_markov_unordered(players, 0)
+        chance_of_win = analyze.match_eval_markov_unordered(players, 0, False)
         self.assertLess(0.5, chance_of_win)
 
     def test_one_on_one_uneven(self):
@@ -64,7 +64,7 @@ class TestMatchEvalMarkovUnordered(unittest.TestCase):
         player3 = analyze.new_player('p3', 0.5)
         player4 = analyze.new_player('p4', 0.75)
         players = [player1, player2, player3, player4]
-        chance_of_win = analyze.match_eval_markov_unordered(players, 0)
+        chance_of_win = analyze.match_eval_markov_unordered(players, 0, False)
         self.assertGreater(0.5, chance_of_win)
 
 class TestBuildMarkovChain(unittest.TestCase):

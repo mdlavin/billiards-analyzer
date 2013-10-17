@@ -6,10 +6,12 @@ import functools
 import collections
 
 class Match(object):
-    def __init__(self, players, winning_team, order="unordered"):
+    def __init__(self, players, winning_team, order="unordered",
+                 foul_end=False):
         self.order = order
         self.players = players
         self.winning_team = winning_team
+        self.foul_end = foul_end
 
         # If there are only two players then they are at least partially
         # ordered
@@ -61,27 +63,27 @@ def reorder(players, winning_team, order_variation):
     return (list(deque), winning_team)
 
     
-def match_eval_markov_unordered(players, winning_team):
+def match_eval_markov_unordered(players, winning_team, foul_end):
     orderings = range(len(players) * 2)
-    return _match_eval_markov(players, winning_team, orderings)
+    return _match_eval_markov(players, winning_team, orderings, foul_end)
 
-def match_eval_markov_partial_ordered(players, winning_team):
+def match_eval_markov_partial_ordered(players, winning_team, foul_end):
     orderings = range(len(players))
-    return _match_eval_markov(players, winning_team, orderings)
+    return _match_eval_markov(players, winning_team, orderings, foul_end)
 
-def _match_eval_markov(players, winning_team, orderings):
+def _match_eval_markov(players, winning_team, orderings, foul_end):
     count=0
     total=0
     
     for ordering in orderings:
-        total += match_eval_markov(players, winning_team, ordering)
+        total += match_eval_markov(players, winning_team, ordering, foul_end)
         count += 1
 
     return total/count
 
-def match_eval_markov(players, winning_team, order):
+def match_eval_markov(players, winning_team, order, foul_end):
     (players, winning_team) = reorder(players, winning_team, order)
-    return match_eval_markov_total(players, winning_team)
+    return match_eval_markov_total(players, winning_team, foul_end)
     
 def value(v):
     if isinstance(v, pm.Variable):
@@ -101,6 +103,8 @@ def build_markov_chain(players, winning_team):
     chain = markov.Chain()
     winners_win = chain.new_state('winners_win')
     losers_win = chain.new_state('losers_win')
+    winners_win_by_foul = chain.new_state('winners_win_by_foul')
+    losers_win_by_foul = chain.new_state('losers_win_by_foul')
     for player_num in range(len(players)):
         chain.new_state( (player_num, 0, 0) )
 
@@ -108,7 +112,8 @@ def build_markov_chain(players, winning_team):
         next_player_index = (i+1) % len(players)
         next_player_state = chain.get_state( (next_player_index, 0, 0) )
         chance_of_win = value(players[i]['sink'])
-        chance_of_miss = 1. - chance_of_win
+        chance_of_foul_end = value(players[i]['foul_end'])
+        chance_of_miss = 1. - chance_of_win - chance_of_foul_end
         player_state = chain.get_state( (i, 0, 0) )
         chain.set_transition(player_state, 
                              next_player_state,
@@ -116,15 +121,27 @@ def build_markov_chain(players, winning_team):
 
         if i % 2 == winning_team:
             end_state = winners_win
+            foul_end_state = losers_win_by_foul
         else:
             end_state = losers_win
+            foul_end_state = winners_win_by_foul
         chain.set_transition(player_state, end_state, chance_of_win)
+        chain.set_transition(player_state, foul_end_state, chance_of_foul_end)
     
     return chain
 
-def match_eval_markov_total(players, winning_team):
+def sum_less_than_one(vars):
+    if sum(vars) <= 1:
+        return 0.0
+    else:
+        return -pm.inf
+
+def match_eval_markov_total(players, winning_team, foul_end):
     chain = build_markov_chain(players, winning_team)
-    winners_win_state = chain.get_state('winners_win')
+    if foul_end:
+        winners_win_state = chain.get_state('winners_win_by_foul')
+    else:
+        winners_win_state = chain.get_state('winners_win')
     player_0_start = chain.get_state( (0, 0, 0) )
     result = chain.steady_state(player_0_start)
     return result[winners_win_state]
@@ -132,6 +149,14 @@ def match_eval_markov_total(players, winning_team):
 def new_player(name, sink=0.5): 
     player = {}
     player['sink'] = pm.Beta(name + "_sink", alpha=3, beta=3, value=sink)
+    player['foul_end'] = pm.Beta(name + "_foul_end", alpha=3,
+                                 beta=3, value=0.00000000001)
+    vars = player.values()
+    player['balance'] = pm.Potential(logp = sum_less_than_one,
+                                     name = name + "_balance",
+                                     parents = {'vars': vars},
+                                     doc = name + "_balance")
+        
     return player
 
 def all_matches(matches):
@@ -152,7 +177,8 @@ def all_matches(matches):
 
         parents = {'players': match.players,
                    'winning_team': match.winning_team,
-                   'order': order}
+                   'order': order,
+                   'foul_end': match.foul_end}
         match_var = pm.Deterministic(eval = match_eval_markov,
                                      doc = match_name,
                                      name = match_name,

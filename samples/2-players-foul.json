@@ -1,0 +1,19 @@
+[
+    {
+        "winners": ["player-a"],
+        "losers": ["player-b"]
+    },
+    {
+        "winners": ["player-a"],
+        "losers": ["player-b"]
+    },
+    {
+        "winners": ["player-a"],
+        "losers": ["player-b"]
+    },
+    {
+        "winners": ["player-b"],
+        "losers": ["player-a"],
+        "foul-end": true
+    }
+]

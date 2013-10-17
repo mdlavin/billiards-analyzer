@@ -35,26 +35,31 @@ def players_from_match(match):
 def json_to_matches(matches_json):
     players_for_each_match = map(players_from_match, matches_json)
     all_player_names = set(itertools.chain(*players_for_each_match))
-    player_var_lookup = {}
+    player_lookup = {}
     for name in all_player_names:
-        player_var_lookup[name] = analyze.new_player(name)
+        player_lookup[name] = analyze.new_player(name)
         
     matches = []
     for match in matches_json:
         if "players" in match:
             pass
-            player_vars = map(lambda p: player_var_lookup[p], match['players'])
+            players = map(lambda p: player_lookup[p], match['players'])
             winning_team = match['winning-team']
-            newMatch = analyze.Match(player_vars, winning_team, "partial")
+            newMatch = analyze.Match(players, winning_team, "partial")
         else:
-            winner_vars = map(lambda p: player_var_lookup[p], match['winners'])
-            losers_vars = map(lambda p: player_var_lookup[p], match['losers'])
+            winners = map(lambda p: player_lookup[p], match['winners'])
+            losers = map(lambda p: player_lookup[p], match['losers'])
             ordered = "unordered"
             if "ordered" in match:
                 ordered = "partial"
+
+            if "foul-end" in match:
+                foul_end = match['foul-end']
+            else:
+                foul_end = False
             
-            players = analyze.zip_lists(winner_vars, losers_vars)
-            newMatch = analyze.Match(players, 0, ordered)
+            players = analyze.zip_lists(winners, losers)
+            newMatch = analyze.Match(players, 0, ordered, foul_end)
         matches.append(newMatch)
 
     return matches
@@ -70,26 +75,27 @@ matches = json_to_matches(matches_json)
 all_match_vars = analyze.all_matches(matches)
 match_outcomes = analyze.outcomes(all_match_vars)
 
-def player_vars(player):
+def player_nodes(player):
     return player.values()
 
-def match_player_vars(match):
-    return itertools.chain(*map(lambda p: player_vars(p), match.players))
+def match_player_nodes(match):
+    return itertools.chain(*map(lambda p: player_nodes(p), match.players))
 
-def player_vars_from_matches(matches):
-    return itertools.chain(*map(lambda m: match_player_vars(m), matches))
+def player_nodes_from_matches(matches):
+    return itertools.chain(*map(lambda m: match_player_nodes(m), matches))
 
-players = list(set(player_vars_from_matches(matches)))
-all_vars = players + all_match_vars + match_outcomes
+players = list(set(player_nodes_from_matches(matches)))
+all_nodes = players + all_match_vars + match_outcomes
 
-model = pm.MCMC(all_vars)
+model = pm.MCMC(all_nodes)
 model.sample(iter=2000, burn=0, thin=1)
 print "" # Advance one line to avoid overlap when outputting the data below
 
 # Collect stats, sort the players by their mean sink ranking and print 
 # the results
 stats = model.stats()
-sorted_players = sorted(players, key=lambda p: stats[p.__name__]['mean'])
+player_vars = filter(lambda n: isinstance(n, pm.Variable), players)
+sorted_players = sorted(player_vars, key=lambda p: stats[p.__name__]['mean'])
 for player in sorted_players:
     print player.__name__  + ": " + str(stats[player.__name__]['mean'])
 
@@ -99,7 +105,8 @@ if args.plot:
 def player_from_stats(stats, player):
     new_player = {}
     for attr in player:
-        new_player[attr] = stats[player[attr].__name__]['mean']
+        if isinstance(player[attr], pm.Variable):
+            new_player[attr] = stats[player[attr].__name__]['mean']
     return new_player
 
 correct = 0
@@ -111,7 +118,7 @@ for match in matches:
     else:
         eval_method = analyze.match_eval_markov_partial_ordered
 
-    chance_of_win = eval_method(players, match.winning_team)
+    chance_of_win = eval_method(players, match.winning_team, match.foul_end)
     if chance_of_win > 0.5:
         correct += 1
 
