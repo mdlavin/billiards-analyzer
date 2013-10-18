@@ -103,22 +103,17 @@ class Chain(object):
                 return state
         return None
 
-
-    def steady_state(self,start_state=None, threshold=10e-10):
-        pi = self._create_start_vector(start_state)
-
-        (rows,cols) = self.matrix.shape
-
+    def _fill_in_diagonal_transistions(self, trans):
         # Make a copy of the matrix before it's modified
         trans = self.matrix.copy()
 
+        (rows,cols) = self.matrix.shape
+        
         # Verify transition probiblites and calculate the diagonal
+        np.fill_diagonal(trans, 0)
+        col_sums = np.sum(trans, axis=0)
         for col in range(cols):
-            sum=0.
-            for row in range(rows):
-                if row != col:
-                    sum += trans[row, col]
-                
+            sum = col_sums[0, col]
             if sum > 1:
                 col_state = self.find_state_by_index(col)
                 raise Exception("The combined probabilities for transtion " + 
@@ -126,21 +121,31 @@ class Chain(object):
                                 "larger than 1")
                 
             trans[col,col] = 1. - sum
+        
+        return trans
 
-
-        trans = trans**100
-
+    def _iterate_until_stable(self, trans, start_state, threshold=10e-10):
+        state = self._create_start_vector(start_state)
         while True:
-            pi_temp = trans * pi
-            pi = trans * pi_temp
-            if np.linalg.norm(pi-pi_temp) < threshold:
+            state_temp = trans * state
+            state = trans * state_temp
+            if np.linalg.norm(state-state_temp) < threshold:
                 break
+        
+        return state
+
+        
+
+    def steady_state(self,start_state=None, threshold=10e-10):
+        trans = self._fill_in_diagonal_transistions(self.matrix)
+
+        steady_state = self._iterate_until_stable(trans, start_state, threshold)
 
         # Convert pi into a map of states and their chances
         result = {}
         for state in self.states:
             state_index = self.states[state]
-            result[state] = pi[state_index,0]
+            result[state] = steady_state[state_index,0]
             
         return result
 
