@@ -78,8 +78,13 @@ for match in matches:
     else:
         eval_method = analyze.match_eval_markov_partial_ordered
 
-    chance_of_win = eval_method(players, match.winning_team, match.foul_end)
-    if chance_of_win > 0.5:
+    chance_of_win = eval_method(players, match.winning_team, False)
+    chance_of_foul_win = eval_method(players, match.winning_team, True)
+    losing_team = (match.winning_team + 1) % 2
+    chance_of_loss = eval_method(players, losing_team, False)
+    chance_of_foul_loss = eval_method(players, losing_team, True)
+    if ((chance_of_win + chance_of_foul_win) >
+        (chance_of_loss + chance_of_foul_loss)):
         correct += 1
 
 print "Correctly guessed %(correct)d out of %(total)d matches" % \

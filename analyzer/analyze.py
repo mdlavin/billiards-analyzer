@@ -1,4 +1,5 @@
 import pymc as pm
+import numpy as np
 import markov
 import math
 import itertools
@@ -81,42 +82,77 @@ def value(v):
     else:
         return v
 
+def _build_uninitialized_chain(num_players):
+    chain = markov.Chain()
 
-def build_markov_chain(players, winning_team):
+    for team_a_balls in range(8):
+        chain.new_state( (0, 'win', 0, team_a_balls) )
+        chain.new_state( (1, 'win', team_a_balls, 0) )
+        for team_b_balls in range(8):
+            chain.new_state( (0, 'foul-win', team_a_balls, team_b_balls) )
+            chain.new_state( (1, 'foul-win', team_a_balls, team_b_balls) )
+            for player_num in range(num_players):
+                chain.new_state( (player_num, team_a_balls, team_b_balls) )
+
+    return chain
+
+def _set_state_transitions(players, chain):
+    for team_a_balls in range(8):
+        for team_b_balls in range(8):
+            for i in range(len(players)):
+                next_player_index = (i+1) % len(players)
+                next_player_state = chain.get_state(
+                    (next_player_index, team_a_balls, team_b_balls)
+                )
+                chance_of_sink = value(players[i]['sink'])
+                chance_of_foul_end = value(players[i]['foul_end'])
+                chance_of_miss = 1. - (chance_of_sink + chance_of_foul_end)
+                while np.sum([chance_of_sink,
+                              chance_of_foul_end, 
+                              chance_of_miss],
+                             dtype=np.float64) > 1:
+                    chance_of_miss = chance_of_miss - sys.float_info.epsilon
+                    
+                player_state = chain.get_state(
+                    (i, team_a_balls, team_b_balls)
+                )
+                # Create the player miss transition
+                chain.set_transition(player_state, 
+                                     next_player_state,
+                                     chance_of_miss)
+
+                # Create the foul win transition
+                foul_end_state = chain.get_state(
+                    ((i+1) % 2, 'foul-win', team_a_balls, team_b_balls)
+                )
+                chain.set_transition(player_state, foul_end_state,
+                                     chance_of_foul_end)
+
+                # Create the sink transition
+                if i % 2 == 0:
+                    if team_a_balls == 0:
+                        sink_label = (0, 'win', 0, team_b_balls)
+                    else:
+                        sink_label = (i, team_a_balls-1, team_b_balls)
+                else:
+                    if team_b_balls == 0:
+                        sink_label = (1, 'win', team_a_balls, 0)
+                    else:
+                        sink_label = (i, team_a_balls, team_b_balls-1)
+
+                sink_state = chain.get_state(sink_label)
+                chain.set_transition(player_state, sink_state, chance_of_sink)
+
+
+def build_markov_chain(players):
     if len(players) % 2 != 0:
         raise ValueError("The number of players must be even")
 
-    if winning_team != 0 and winning_team != 1:
-        raise ValueError("The winning_team must be either 0 or 1 " +
-                         "but was " + str(winning_team))
 
-    chain = markov.Chain()
-    winners_win = chain.new_state('winners_win')
-    losers_win = chain.new_state('losers_win')
-    winners_win_by_foul = chain.new_state('winners_win_by_foul')
-    losers_win_by_foul = chain.new_state('losers_win_by_foul')
-    for player_num in range(len(players)):
-        chain.new_state( (player_num, 0, 0) )
-
-    for i in range(len(players)):
-        next_player_index = (i+1) % len(players)
-        next_player_state = chain.get_state( (next_player_index, 0, 0) )
-        chance_of_win = value(players[i]['sink'])
-        chance_of_foul_end = value(players[i]['foul_end'])
-        chance_of_miss = 1. - chance_of_win - chance_of_foul_end
-        player_state = chain.get_state( (i, 0, 0) )
-        chain.set_transition(player_state, 
-                             next_player_state,
-                             chance_of_miss)
-
-        if i % 2 == winning_team:
-            end_state = winners_win
-            foul_end_state = losers_win_by_foul
-        else:
-            end_state = losers_win
-            foul_end_state = winners_win_by_foul
-        chain.set_transition(player_state, end_state, chance_of_win)
-        chain.set_transition(player_state, foul_end_state, chance_of_foul_end)
+    # Create states before the transition probabilities so they'll be ready
+    # to reference
+    chain = _build_uninitialized_chain(len(players))
+    _set_state_transitions(players, chain)
     
     return chain
 
@@ -126,21 +162,54 @@ def sum_less_than_one(vars):
     else:
         return -pm.inf
 
-def match_eval_markov_total(players, winning_team, foul_end):
-    chain = build_markov_chain(players, winning_team)
-    if foul_end:
-        winners_win_state = chain.get_state('winners_win_by_foul')
-    else:
-        winners_win_state = chain.get_state('winners_win')
-    player_0_start = chain.get_state( (0, 0, 0) )
-    result = chain.steady_state(player_0_start)
-    return result[winners_win_state]
+def _win_states(winning_team, foul_end):
+    def _create_state(winning_balls, losing_balls):
+        state_label = 'foul-win' if foul_end else 'win'
+        if winning_team == 0:
+            team_a_balls = winning_balls
+            team_b_balls = losing_balls
+        else:
+            team_a_balls = losing_balls
+            team_b_balls = winning_balls
+            
+        return (winning_team, state_label, team_a_balls, team_b_balls)
+        
+    for losing_team_balls in range(8):
+        if foul_end:
+            for winning_team_balls in range(8):
+                yield _create_state(winning_team_balls, losing_team_balls)
+        else:
+            yield _create_state(0, losing_team_balls)
+        
+            
 
-def new_player(name, sink=0.5): 
+def match_eval_markov_total(players, winning_team, foul_end):
+    if winning_team != 0 and winning_team != 1:
+        raise ValueError("The winning_team must be either 0 or 1 " +
+                         "but was " + str(winning_team))
+
+    chain = build_markov_chain(players)
+    player_0_start = chain.get_state( (0, 0, 0) )
+
+    try:
+        result = chain.steady_state(player_0_start)
+    except Exception as exp: 
+        print("There was a failure building a steady state")
+        for player in players:
+            print(player)
+        raise exp
+   
+    total = 0
+    for end_state in _win_states(winning_team, foul_end):
+        total += result[chain.get_state(end_state)]
+        
+    return total
+
+def new_player(name, sink=0.5, foul=1e-10): 
     player = {}
     player['sink'] = pm.Beta(name + "_sink", alpha=3, beta=3, value=sink)
     player['foul_end'] = pm.Beta(name + "_foul_end", alpha=3,
-                                 beta=3, value=0.00000000001)
+                                 beta=3, value=foul)
     vars = player.values()
     player['balance'] = pm.Potential(logp = sum_less_than_one,
                                      name = name + "_balance",
@@ -191,5 +260,3 @@ def outcomes(match_vars):
                                          plot=False))
 
     return outcome_vars
-
-

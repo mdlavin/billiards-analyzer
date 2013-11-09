@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 
 class Chain(object):
     def __init__(self):
@@ -46,7 +47,7 @@ class Chain(object):
         if chance < 0 or chance > 1:
             raise Exception("The chance of the state transition must not be " +
                             "less than 0 or greater than 1, but the value " + 
-                            str(chance) + " was provided")
+                            repr(chance) + " was provided")
 
         from_index = self.states[from_state]
         to_index = self.states[to_state]
@@ -68,7 +69,8 @@ class Chain(object):
         (rows,cols) = self.matrix.shape
 
         pi = np.matrix(np.ones(rows), np.float64)
-        pi = pi.transpose()
+        # Use copy() to ensure that pi is a C-continuous matrix and not a view
+        pi = pi.transpose().copy()
 
         if start_state is not None:
             if isinstance(start_state, dict):
@@ -114,21 +116,24 @@ class Chain(object):
         col_sums = np.sum(trans, axis=0)
         for col in range(cols):
             sum = col_sums[0, col]
-            if sum > 1:
-                col_state = self.find_state_by_index(col)
-                raise Exception("The combined probabilities for transtion " + 
-                                "from state " + str(col_state) + " are " +
-                                "larger than 1")
-                
+            if sum > 1.:
+                if (sum - sys.float_info.epsilon) > 1.:
+                    col_state = self.find_state_by_index(col)
+                    raise Exception("The probabilities for transtion " + 
+                                    "from state " + str(col_state) + " are " +
+                                    repr(trans[:,col]) + " total " + repr(sum) +
+                                    " which is larger than 1")
+
             trans[col,col] = 1. - sum
         
         return trans
 
     def _iterate_until_stable(self, trans, start_state, threshold=10e-10):
         state = self._create_start_vector(start_state)
+        state_temp = state.copy()
         while True:
-            state_temp = trans * state
-            state = trans * state_temp
+            np.dot(trans, state, state_temp)
+            np.dot(trans, state_temp, state)
             if np.linalg.norm(state-state_temp) < threshold:
                 break
         
