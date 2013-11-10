@@ -97,21 +97,23 @@ def _build_uninitialized_chain(num_players):
     return chain
 
 def _set_state_transitions(players, chain):
-    for team_a_balls in range(8):
-        for team_b_balls in range(8):
-            for i in range(len(players)):
-                next_player_index = (i+1) % len(players)
+    for i in range(len(players)):
+        next_player_index = (i+1) % len(players)
+        
+        chance_of_sink = value(players[i]['sink'])
+        chance_of_foul_end = value(players[i]['foul_end'])
+        chance_of_miss = 1. - (chance_of_sink + chance_of_foul_end)
+        while np.sum([chance_of_sink,
+                      chance_of_foul_end, 
+                      chance_of_miss],
+                     dtype=np.float64) > 1:
+            chance_of_miss = chance_of_miss - sys.float_info.epsilon
+
+        for team_a_balls in range(8):
+            for team_b_balls in range(8):
                 next_player_state = chain.get_state(
                     (next_player_index, team_a_balls, team_b_balls)
                 )
-                chance_of_sink = value(players[i]['sink'])
-                chance_of_foul_end = value(players[i]['foul_end'])
-                chance_of_miss = 1. - (chance_of_sink + chance_of_foul_end)
-                while np.sum([chance_of_sink,
-                              chance_of_foul_end, 
-                              chance_of_miss],
-                             dtype=np.float64) > 1:
-                    chance_of_miss = chance_of_miss - sys.float_info.epsilon
                     
                 player_state = chain.get_state(
                     (i, team_a_balls, team_b_balls)
