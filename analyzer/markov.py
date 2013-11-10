@@ -29,6 +29,7 @@ class Chain(object):
             new_index = x
             self.matrix.resize((x+1,y+1))
 
+        new_state.index = new_index
         self.states[new_state] = new_index
         return new_state
 
@@ -40,7 +41,7 @@ class Chain(object):
             return None
 
     def set_transition(self, from_state, to_state, chance):
-        if from_state == to_state:
+        if from_state.index == to_state.index:
             raise Exception("The from_state and to_state much be different")
 
         npf64_chance = np.float64(chance)
@@ -49,17 +50,7 @@ class Chain(object):
                             "less than 0 or greater than 1, but the value " + 
                             repr(chance) + " was provided")
         
-        try:
-            from_index = self.states[from_state]
-        except KeyError:
-            raise Exception("The from_state is not part of this chain")
-           
-        try:
-            to_index = self.states[to_state]
-        except KeyError:
-            raise Exception("The to_state is not a part of this chain")
-            
-        self.matrix[to_index,from_index] = npf64_chance
+        self.matrix[to_state.index,from_state.index] = npf64_chance
 
     def get_transition(self, from_state, to_state):
         if from_state not in self.states:
