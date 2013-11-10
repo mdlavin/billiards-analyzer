@@ -1,6 +1,9 @@
 import numpy as np
 import sys
 
+npf64_zero = np.float64(0.)
+npf64_one = np.float64(1.)
+
 class Chain(object):
     def __init__(self):
         self.matrix = None
@@ -37,21 +40,26 @@ class Chain(object):
             return None
 
     def set_transition(self, from_state, to_state, chance):
-        if from_state not in self.states:
-            raise Exception("The from_state is not part of this chain")
-        if to_state not in self.states:
-            raise Exception("The to_state is not a part of this chain")
         if from_state == to_state:
             raise Exception("The from_state and to_state much be different")
 
-        if chance < 0 or chance > 1:
+        npf64_chance = np.float64(chance)
+        if npf64_chance < npf64_zero or npf64_chance > npf64_chance:
             raise Exception("The chance of the state transition must not be " +
                             "less than 0 or greater than 1, but the value " + 
                             repr(chance) + " was provided")
-
-        from_index = self.states[from_state]
-        to_index = self.states[to_state]
-        self.matrix[to_index,from_index] = chance
+        
+        try:
+            from_index = self.states[from_state]
+        except KeyError:
+            raise Exception("The from_state is not part of this chain")
+           
+        try:
+            to_index = self.states[to_state]
+        except KeyError:
+            raise Exception("The to_state is not a part of this chain")
+            
+        self.matrix[to_index,from_index] = npf64_chance
 
     def get_transition(self, from_state, to_state):
         if from_state not in self.states:
