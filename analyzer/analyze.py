@@ -193,13 +193,7 @@ def match_eval_markov_total(players, winning_team, foul_end):
     chain = build_markov_chain(players)
     player_0_start = chain.get_state( (0, 0, 0) )
 
-    try:
-        result = chain.steady_state(player_0_start)
-    except Exception as exp: 
-        print("There was a failure building a steady state")
-        for player in players:
-            print(player)
-        raise exp
+    result = chain.steady_state(player_0_start)
    
     total = 0
     for end_state in _win_states(winning_team, foul_end):
