@@ -104,6 +104,18 @@ class Chain(object):
                 return state
         return None
 
+    def _raise_error_for_column_greater_than_one(self, cols, col_sums):
+        for col in range(cols):
+            sum = col_sums[0, col]
+            if sum > npf64_one:
+                if (sum - sys.float_info.epsilon) > npf64_one:
+                    col_state = self.find_state_by_index(col)
+                    raise Exception("The probabilities for transtion " + 
+                                    "from state " + str(col_state) + " are " +
+                                    repr(trans[:,col]) + " total " + repr(sum) +
+                                    " which is larger than 1")
+        
+
     def _fill_in_diagonal_transistions(self, trans):
         # Make a copy of the matrix before it's modified
         trans = self.matrix.copy()
@@ -111,19 +123,15 @@ class Chain(object):
         (rows,cols) = self.matrix.shape
         
         # Verify transition probiblites and calculate the diagonal
-        np.fill_diagonal(trans, 0)
-        col_sums = np.sum(trans, axis=0)
-        for col in range(cols):
-            sum = col_sums[0, col]
-            if sum > 1.:
-                if (sum - sys.float_info.epsilon) > 1.:
-                    col_state = self.find_state_by_index(col)
-                    raise Exception("The probabilities for transtion " + 
-                                    "from state " + str(col_state) + " are " +
-                                    repr(trans[:,col]) + " total " + repr(sum) +
-                                    " which is larger than 1")
-
-            trans[col,col] = 1. - sum
+        np.fill_diagonal(trans, npf64_zero)
+        col_sums = np.squeeze(np.asarray(np.sum(trans, axis=0)))
+        max = col_sums.max()
+        if max > npf64_one:
+            if (max - sys.float_info.epsilon) > npf64_one:
+                self._raise_error_for_column_greater_than_one(cols, col_sums)
+        
+        new_diags = npf64_one - col_sums
+        trans[np.diag_indices(cols)] = new_diags
         
         return trans
 
