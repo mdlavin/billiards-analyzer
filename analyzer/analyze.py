@@ -226,8 +226,11 @@ def all_matches(matches):
                                        lower=0,
                                        upper=len(match.players)*2 - 1)
         else:
+            observed = match.order == "total"
             order = pm.DiscreteUniform('match_%i_order' % i,
+                                       value=0,
                                        lower=0,
+                                       observed=observed,
                                        upper=len(match.players) - 1)
 
         parents = {'players': match.players,

@@ -75,6 +75,8 @@ for match in matches:
 
     if match.order == "unordered":
         eval_method = analyze.match_eval_markov_unordered
+    elif match.order == "total":
+        eval_method = analyze.match_eval_markov_total
     else:
         eval_method = analyze.match_eval_markov_partial_ordered
 

@@ -22,7 +22,7 @@ def json_to_match(player_lookup, match):
     players = map(lambda p: player_lookup[p], players_from_match(match))
     if "players" in match:
         winning_team = match['winning-team']
-        ordered = "partial"
+        ordered = "total"
     else:
         winning_team = 0
         ordered = "unordered"
