@@ -10,6 +10,33 @@ class Chain(object):
         self.states = {}
         self.states_by_label = {}
 
+    def _create_matrix(self):
+        """
+        Create a 1x1 matrix with the initial value of 0.  Return the
+        newly created matrix
+        """
+        return np.matrix(np.array([0]), np.float64)
+
+    def _grow_matrix(self, matrix):
+        """
+        Increase the size of the matrix by one row and one column without
+        disturbing the rest of the matrix.  The new elements should all 
+        default to a 0 value.
+
+        Return the newly grown matrix.  It is ok to modify the matrix object
+        in place and return that for efficiency.
+        """
+        (x,y) = matrix.shape
+        matrix.resize((x+1,y+1), refcheck=False)
+        return matrix
+
+    def _matrix_size(self, matrix):
+        """
+        Returns the size of the matrix
+        """
+        (x,y) = matrix.shape
+        return x
+
     def new_state(self, label=None):
         new_state = State(label)
         if label is not None:
@@ -23,11 +50,10 @@ class Chain(object):
         new_index = 0
 
         if self.matrix is None:
-            self.matrix = np.matrix(np.array([0]), np.float64)
+            self.matrix = self._create_matrix() 
         else:
-            (x,y) = self.matrix.shape
-            new_index = x
-            self.matrix.resize((x+1,y+1))
+            new_index = self._matrix_size(self.matrix)
+            self.matrix = self._grow_matrix(self.matrix)
 
         new_state.index = new_index
         self.states[new_state] = new_index
@@ -40,17 +66,21 @@ class Chain(object):
         else:
             return None
 
-    def set_transition(self, from_state, to_state, chance):
-        if from_state.index == to_state.index:
-            raise Exception("The from_state and to_state much be different")
-
+    def _set_transition(self, matrix, row, col, chance):
         npf64_chance = np.float64(chance)
         if npf64_chance < npf64_zero or npf64_chance > npf64_chance:
             raise Exception("The chance of the state transition must not be " +
                             "less than 0 or greater than 1, but the value " + 
                             repr(chance) + " was provided")
         
-        self.matrix[to_state.index,from_state.index] = npf64_chance
+        matrix[row, col] = npf64_chance
+        
+    def set_transition(self, from_state, to_state, chance):
+        if from_state.index == to_state.index:
+            raise Exception("The from_state and to_state much be different")
+
+        self._set_transition(self.matrix, to_state.index,
+                             from_state.index, chance)
 
     def get_transition(self, from_state, to_state):
         if from_state not in self.states:
