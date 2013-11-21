@@ -100,14 +100,9 @@ def _set_state_transitions(players, chain):
     for i in range(len(players)):
         next_player_index = (i+1) % len(players)
         
-        chance_of_sink = value(players[i]['sink'])
-        chance_of_foul_end = value(players[i]['foul_end'])
+        chance_of_sink = players[i]['sink']
+        chance_of_foul_end = players[i]['foul_end']
         chance_of_miss = 1. - (chance_of_sink + chance_of_foul_end)
-        while np.sum([chance_of_sink,
-                      chance_of_foul_end, 
-                      chance_of_miss],
-                     dtype=np.float64) > 1:
-            chance_of_miss = chance_of_miss - sys.float_info.epsilon
 
         for team_a_balls in range(8):
             for team_b_balls in range(8):
@@ -190,7 +185,15 @@ def match_eval_markov_total(players, winning_team, foul_end):
         raise ValueError("The winning_team must be either 0 or 1 " +
                          "but was " + str(winning_team))
 
-    chain = build_markov_chain(players)
+    # Make sure that all of the player values are numeric
+    new_players = []
+    for player in players:
+        new_player = {}
+        new_player['sink'] = value(player['sink'])
+        new_player['foul_end'] = value(player['foul_end'])
+        new_players.append(new_player)
+            
+    chain = build_markov_chain(new_players)
     player_0_start = chain.get_state( (0, 0, 0) )
 
     result = chain.steady_state(player_0_start)
