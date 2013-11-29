@@ -65,6 +65,9 @@ class Chain(object):
             return self.states_by_label[label]
         else:
             return None
+    
+    def _get_zero(self):
+        return npf64_zero
 
     def _set_transition(self, matrix, row, col, chance):
         npf64_chance = np.float64(chance)
@@ -191,7 +194,26 @@ class Chain(object):
             
         return result
 
+    def get_end_states(self):
+        """
+        Return the states that have no outgoing transistions
+        """
+        end_states = []
+        for start in self.states:
+            is_end = True
+            for end in self.states:
+                if end == start:
+                    continue
 
+                if self.get_transition(start,end) != self._get_zero():
+                    is_end = False
+                    break
+            
+            if is_end:
+                end_states.append(start)
+
+        return end_states 
+                
 class State(object):
     def __init__(self, label=None):
         self.label = label

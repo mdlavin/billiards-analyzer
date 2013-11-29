@@ -78,3 +78,28 @@ class ChainTest(unittest.TestCase):
         results = chain.steady_state(start)
         self.assertAlmostEqual(0.625, results[suburban])
         self.assertAlmostEqual(0.375, results[city])
+        
+    def test_end_states(self):
+        chain = markov.Chain()
+        start = chain.new_state('start')
+        end = chain.new_state('end')
+        chain.set_transition(start, end, 0.05)
+        end_states = chain.get_end_states()
+        self.assertEqual(1, len(end_states))
+        self.assertTrue(end in end_states)
+
+    def test_end_states_split(self):
+        """
+        Test that if a chain contains multiple end states
+        all are reported
+        """
+        chain = markov.Chain()
+        start = chain.new_state('start')
+        end1 = chain.new_state('end1')
+        end2 = chain.new_state('end2')
+        chain.set_transition(start, end1, 0.05)
+        chain.set_transition(start, end2, 0.05)
+        end_states = chain.get_end_states()
+        self.assertEqual(2, len(end_states))
+        self.assertTrue(end1 in end_states)
+        self.assertTrue(end2 in end_states)
