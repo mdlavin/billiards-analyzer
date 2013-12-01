@@ -17,10 +17,10 @@ class Chain(markov.Chain):
         return matrix.cols
 
     def _zero_diagnoal(self, matrix):
-        zero_diag = sympy.eye(matrix.rows)
-        zero_diag = zero_diag - sympy.ones(matrix.rows, matrix.cols)
-        zero_diag = zero_diag * zero_diag
-        return matrix * zero_diag
+        matrix = matrix.copy()
+        for row in range(matrix.rows):
+            matrix[row, row] = 0
+        return matrix
         
     def _fill_in_diagnoal_transitions(self, matrix):
         matrix = self._zero_diagnoal(self.matrix)

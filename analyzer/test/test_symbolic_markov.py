@@ -35,3 +35,36 @@ class SymbolicChainTest(unittest.TestCase):
         steady_state_suburban = self.results[self.suburban].subs(vals)
         self.assertAlmostEqual(0.625, steady_state_suburban)
         self.assertAlmostEqual(0.375, steady_state_city)
+
+    def test_three_states(self):
+        chain = markov.Chain()
+        democrat = chain.new_state("democrat")
+        republican = chain.new_state("republican")
+        independent = chain.new_state("independent")
+        democrat_to_republican = sympy.Symbol("democrat_to_republican")
+        independent_to_republican = sympy.Symbol("independent_to_republican")
+        republican_to_democrat = sympy.Symbol("republican_to_democrat")
+        independent_to_democrat = sympy.Symbol("independent_to_democrat")
+        republican_to_independent = sympy.Symbol("republican_to_independent")
+        democrat_to_independent = sympy.Symbol("democrat_to_independent")
+        chain.set_transition(democrat, republican, democrat_to_republican)
+        chain.set_transition(independent, republican, independent_to_republican)
+        chain.set_transition(republican, democrat, republican_to_democrat)
+        chain.set_transition(independent, democrat, independent_to_democrat)
+        chain.set_transition(republican, independent, republican_to_independent)
+        chain.set_transition(democrat, independent, democrat_to_independent)
+        results = chain.steady_state()
+        
+        vars = {
+            democrat_to_republican: sympy.Rational(2,10),
+            independent_to_republican: sympy.Rational(3,10),
+            republican_to_democrat: sympy.Rational(1,10),
+            independent_to_democrat: sympy.Rational(3,10),
+            republican_to_independent: sympy.Rational(1,10),
+            democrat_to_independent: sympy.Rational(1,10)
+        }
+        
+        self.assertEqual(sympy.Rational(9,28), results[democrat].subs(vars))
+        self.assertEqual(sympy.Rational(15,28), results[republican].subs(vars))
+        self.assertEqual(sympy.Rational(1,7), results[independent].subs(vars))
+
