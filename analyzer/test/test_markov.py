@@ -103,3 +103,27 @@ class ChainTest(unittest.TestCase):
         self.assertEqual(2, len(end_states))
         self.assertTrue(end1 in end_states)
         self.assertTrue(end2 in end_states)
+        
+    def test_is_absorbing_state(self):
+        chain = markov.Chain()
+        start = chain.new_state('start')
+        end = chain.new_state('end')
+        chain.set_transition(start, end, 0.05)
+        self.assertEqual(True, chain._is_absorbing_state(end))
+        self.assertEqual(False, chain._is_absorbing_state(start))
+    
+    def test_is_absorbing_true(self):
+        chain = markov.Chain()
+        start = chain.new_state('start')
+        end = chain.new_state('end')
+        chain.set_transition(start, end, 0.05)
+        self.assertEqual(True, chain.is_absorbing())
+
+    def test_is_absorbing_false(self):
+        chain = markov.Chain()
+        one = chain.new_state('one')
+        two = chain.new_state('two')
+        chain.set_transition(one, two, 0.05)
+        chain.set_transition(two, one, 0.05)
+        self.assertEqual(False, chain.is_absorbing())
+        

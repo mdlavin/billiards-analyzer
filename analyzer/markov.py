@@ -59,7 +59,47 @@ class Chain(object):
         self.states[new_state] = new_index
         return new_state
 
-
+    def is_absorbing(self):
+        """
+        Returns True if the chain represents an absorbing Markov chain.  The
+        two requirements of an absorbing Markov chain are that (1) there is at
+        least one absorbing state, with no outgoing transitions, and (2) it is
+        possible to transition from any state to at least one absorbing state in
+        a finite number of steps
+        """
+        absorbing_states = set([state for state in self.states
+                                if self._is_absorbing_state(state)])
+        
+        transient_states = set()
+        
+        progress=True
+        while progress:
+            unknown_states = set(self.states) - absorbing_states \
+                             - transient_states
+            progress=False
+            for state in unknown_states:
+                for absorb in absorbing_states:
+                    trans = self.get_transition(state, absorb)
+                    if not self._is_zero(trans):
+                        transient_states.add(state)
+                        progress=True
+                        break
+            
+        return len(unknown_states) == 0
+                
+            
+        
+    def _is_zero(self, trans):
+        return np.float64(trans) == self._get_zero()
+        
+    def _is_absorbing_state(self, state):
+        for end_state in [x for x in self.states if x != state]:
+            trans = self.get_transition(state, end_state) 
+            if not self._is_zero(trans):
+                return False
+                
+        return True
+            
     def get_state(self, label):
         if label in self.states_by_label:
             return self.states_by_label[label]
