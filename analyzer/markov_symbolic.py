@@ -1,10 +1,11 @@
 import analyzer.markov as markov
 import sympy
+from sympy.matrices import SparseMatrix
 
 class Chain(markov.Chain):
     
     def _create_matrix(self):
-        return sympy.Matrix([0])
+        return SparseMatrix([0])
 
     def _grow_matrix(self, matrix):
         new_row = sympy.zeros(1, matrix.cols)
@@ -22,7 +23,7 @@ class Chain(markov.Chain):
             matrix[row, row] = 0
         return matrix
         
-    def _fill_in_diagnoal_transitions(self, matrix):
+    def _fill_in_diagonal_transistions(self, trans):
         matrix = self._zero_diagnoal(self.matrix)
         for col in range(matrix.cols):
             matrix[col, col] = 1 - sum(matrix[:,col])
@@ -31,12 +32,21 @@ class Chain(markov.Chain):
     def _set_transition(self, matrix, row, col, chance):
         matrix[row, col] = chance
         
+    def _is_zero(self, trans):
+        return trans.is_zero
+        
+    def _inverse(self, matrix):
+        return matrix.inv()
+        
+    def _eye(self, size):
+        return sympy.eye(size)
+        
     def steady_state(self, start_state=None):
         # Initialize the probabilities for transisions to the same state
-        matrix = self._fill_in_diagnoal_transitions(self.matrix)
+        matrix = self._fill_in_diagonal_transistions(self.matrix)
 
         # Subtract the identity matrix
-        matrix = matrix - sympy.eye(matrix.rows)
+        matrix = matrix - self._eye(matrix.rows)
 
         # Add a row at the bottom of the matrix for the equation that all
         # variable probabilities must add up to 1

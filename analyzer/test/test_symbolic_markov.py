@@ -1,8 +1,9 @@
 import analyzer.markov_symbolic as markov
 import unittest
 import sympy
+import abc_markov
 
-class SymbolicChainTest(unittest.TestCase):
+class SymbolicChainTest(abc_markov.AbstractChainTest, unittest.TestCase):
 
     def setUp(self):
         self.chain = markov.Chain()
@@ -14,7 +15,15 @@ class SymbolicChainTest(unittest.TestCase):
         self.chain.set_transition(self.city, self.suburban, self.city_to_sub)
         self.results = self.chain.steady_state()
         
-    
+    def _createChain(self):
+        return markov.Chain()
+        
+    def _createDummyTransitionValue(self):
+        return sympy.Symbol("trans")
+   
+    def _chanceOfCoinFlip(self):
+        return sympy.Symbol("flip")
+ 
     def test_steady_state(self):
         vals = {
             self.sub_to_city: 0.3,
@@ -67,4 +76,3 @@ class SymbolicChainTest(unittest.TestCase):
         self.assertEqual(sympy.Rational(9,28), results[democrat].subs(vars))
         self.assertEqual(sympy.Rational(15,28), results[republican].subs(vars))
         self.assertEqual(sympy.Rational(1,7), results[independent].subs(vars))
-

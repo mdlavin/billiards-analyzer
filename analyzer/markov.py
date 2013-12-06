@@ -103,6 +103,12 @@ class Chain(object):
         temp = np.copy(matrix[:,index2])
         matrix[:,index2] = matrix[:,index1]
         matrix[:,index1] = temp
+        
+    def _inverse(self, matrix):
+        return npl.inv(matrix)
+        
+    def _eye(self, size):
+        return np.eye(size)
                 
     def get_absorbing_probabilities(self):
         (absorbing, transient, unknown) = self._analyze_for_absorbing()
@@ -139,7 +145,7 @@ class Chain(object):
             
         trans_count = len(transient)
         q = cannonical[:trans_count,:trans_count]
-        fund = npl.inv(np.eye(trans_count) - q)
+        fund = self._inverse(self._eye(trans_count) - q)
         r = cannonical[trans_count:,:trans_count]
         
         probs = (r * fund)
