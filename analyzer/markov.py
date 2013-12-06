@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.linalg as npl
 import sys
 
 npf64_zero = np.float64(0.)
@@ -67,6 +68,10 @@ class Chain(object):
         possible to transition from any state to at least one absorbing state in
         a finite number of steps
         """
+        (absorbing, transient, unknown) = self._analyze_for_absorbing()
+        return len(unknown) == 0
+
+    def _analyze_for_absorbing(self):
         absorbing_states = set([state for state in self.states
                                 if self._is_absorbing_state(state)])
         
@@ -76,19 +81,77 @@ class Chain(object):
         while progress:
             unknown_states = set(self.states) - absorbing_states \
                              - transient_states
+            known_states = absorbing_states | transient_states
             progress=False
             for state in unknown_states:
-                for absorb in absorbing_states:
-                    trans = self.get_transition(state, absorb)
+                for known in known_states:
+                    trans = self.get_transition(state, known)
                     if not self._is_zero(trans):
                         transient_states.add(state)
                         progress=True
                         break
-            
-        return len(unknown_states) == 0
-                
-            
+       
+        return (absorbing_states, transient_states, unknown_states)
         
+    def _swap_indices(self, matrix, index1, index2):
+        # Swap rows
+        temp = np.copy(matrix[index2,:])
+        matrix[index2,:] = matrix[index1,:]
+        matrix[index1,:] = temp
+        
+        # Swap columns
+        temp = np.copy(matrix[:,index2])
+        matrix[:,index2] = matrix[:,index1]
+        matrix[:,index1] = temp
+                
+    def get_absorbing_probabilities(self):
+        (absorbing, transient, unknown) = self._analyze_for_absorbing()
+        if len(unknown) != 0:
+            raise Error("The matrix is not an absorbing matrix")
+        
+        matrix = self._fill_in_diagonal_transistions(self.matrix)
+            
+        state_to_index = {}
+        index_to_state = {}
+        for state in self.states:
+            state_to_index[state] = state.index
+            index_to_state[state.index] = state
+            
+        cannonical = matrix.copy()
+
+        def move_state_to_index(s, new_index):
+            old_index = state_to_index[s]
+            old_state = index_to_state[new_index]
+            index_to_state[new_index] = s
+            state_to_index[s] = new_index
+            index_to_state[old_index] = old_state
+            state_to_index[old_state] = old_index
+            self._swap_indices(cannonical, new_index, old_index)
+
+        new_index = 0
+        for s in transient:
+            move_state_to_index(s, new_index)
+            new_index = new_index + 1
+
+        for a in absorbing:
+            move_state_to_index(a, new_index)
+            new_index = new_index + 1
+            
+        trans_count = len(transient)
+        q = cannonical[:trans_count,:trans_count]
+        fund = npl.inv(np.eye(trans_count) - q)
+        r = cannonical[trans_count:,:trans_count]
+        
+        probs = (r * fund)
+        result = {}
+        for t in transient:
+            result[t] = {}
+            for a in absorbing:
+                absorbing_index=state_to_index[a]-trans_count
+                result[t][a] = probs[absorbing_index, state_to_index[t]] 
+        return result
+                
+
     def _is_zero(self, trans):
         return np.float64(trans) == self._get_zero()
         

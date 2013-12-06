@@ -117,6 +117,18 @@ class ChainTest(unittest.TestCase):
         start = chain.new_state('start')
         end = chain.new_state('end')
         chain.set_transition(start, end, 0.05)
+        self.assertEquals(True, chain.is_absorbing())
+
+    def test_is_absorbing_true_deep(self):
+        chain = markov.Chain()
+        empty = chain.new_state('empty')
+        h = chain.new_state('h')
+        ht = chain.new_state('ht')
+        hth = chain.new_state('hth')
+        chain.set_transition(empty, h, 0.50)
+        chain.set_transition(h, ht, 0.50)
+        chain.set_transition(ht, hth, 0.50)
+        chain.set_transition(ht, empty, 0.50)
         self.assertEqual(True, chain.is_absorbing())
 
     def test_is_absorbing_false(self):
@@ -127,3 +139,34 @@ class ChainTest(unittest.TestCase):
         chain.set_transition(two, one, 0.05)
         self.assertEqual(False, chain.is_absorbing())
         
+    def test_get_absorbing_probabilities(self):
+        chain = markov.Chain()
+        empty = chain.new_state('empty')
+        h = chain.new_state('h')
+        t = chain.new_state('t')
+        tt = chain.new_state('tt')
+        chain.set_transition(empty, h, 0.50)
+        chain.set_transition(empty, t, 0.50)
+        chain.set_transition(t, tt, 0.50)
+        chain.set_transition(t, h, 0.50)
+        probabilities = chain.get_absorbing_probabilities()
+        self.assertEqual(0.75, probabilities[empty][h])
+        self.assertEqual(0.25, probabilities[empty][tt])
+        self.assertEqual(0.50, probabilities[t][tt])
+        self.assertEqual(0.50, probabilities[t][h])
+
+        
+    def test_swap_indicies(self):
+        chain = markov.Chain()
+        one = chain.new_state('one')
+        two = chain.new_state('two')
+        chain.set_transition(one, two, 0.12)
+        chain.set_transition(two, one, 0.21)
+        chain.matrix = chain._fill_in_diagonal_transistions(chain.matrix)
+        before0x0 = chain.matrix[0,0]
+        before1x1 = chain.matrix[1,1]
+        chain._swap_indices(chain.matrix, 0, 1)
+        # The old 0x0 value should now be at 1x1
+        self.assertEqual(before0x0, chain.matrix[1,1])
+        # The old 1x1 value should now be at 0x0
+        self.assertEqual(before1x1, chain.matrix[0,0])
