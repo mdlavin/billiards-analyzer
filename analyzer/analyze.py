@@ -82,13 +82,13 @@ def value(v):
     else:
         return v
 
-def _build_uninitialized_chain(num_players):
+def _build_uninitialized_chain(num_players, markov=markov, ballsPerTeam=8):
     chain = markov.Chain()
 
-    for team_a_balls in range(8):
+    for team_a_balls in range(ballsPerTeam):
         chain.new_state( (0, 'win', 0, team_a_balls) )
         chain.new_state( (1, 'win', team_a_balls, 0) )
-        for team_b_balls in range(8):
+        for team_b_balls in range(ballsPerTeam):
             chain.new_state( (0, 'foul-win', team_a_balls, team_b_balls) )
             chain.new_state( (1, 'foul-win', team_a_balls, team_b_balls) )
             for player_num in range(num_players):
@@ -96,16 +96,16 @@ def _build_uninitialized_chain(num_players):
 
     return chain
 
-def _set_state_transitions(players, chain):
+def _set_state_transitions(players, chain, ballsPerTeam=8):
     for i in range(len(players)):
         next_player_index = (i+1) % len(players)
         
         chance_of_sink = players[i]['sink']
         chance_of_foul_end = players[i]['foul_end']
-        chance_of_miss = 1. - (chance_of_sink + chance_of_foul_end)
+        chance_of_miss = 1 - (chance_of_sink + chance_of_foul_end)
 
-        for team_a_balls in range(8):
-            for team_b_balls in range(8):
+        for team_a_balls in range(ballsPerTeam):
+            for team_b_balls in range(ballsPerTeam):
                 next_player_state = chain.get_state(
                     (next_player_index, team_a_balls, team_b_balls)
                 )
@@ -141,15 +141,19 @@ def _set_state_transitions(players, chain):
                 chain.set_transition(player_state, sink_state, chance_of_sink)
 
 
-def build_markov_chain(players):
+def build_markov_chain(players, markov=markov, ballsPerTeam=8):
     if len(players) % 2 != 0:
         raise ValueError("The number of players must be even")
 
 
     # Create states before the transition probabilities so they'll be ready
     # to reference
-    chain = _build_uninitialized_chain(len(players))
-    _set_state_transitions(players, chain)
+    chain = _build_uninitialized_chain(len(players),
+                                       markov=markov,
+                                       ballsPerTeam=ballsPerTeam)
+    _set_state_transitions(players,
+                           chain,
+                           ballsPerTeam=ballsPerTeam)
     
     return chain
 
@@ -194,7 +198,7 @@ def match_eval_markov_total(players, winning_team, foul_end):
         new_players.append(new_player)
             
     chain = build_markov_chain(new_players)
-    player_0_start = chain.get_state( (0, 0, 0) )
+    player_0_start = chain.get_state( (0, 7, 7) )
 
     result = chain.steady_state(player_0_start)
    
