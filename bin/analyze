@@ -32,7 +32,8 @@ args = parser.parse_args()
 matches_json = json.loads(args.matches.read())
 matches = loader.json_to_matches(matches_json)
 
-all_match_vars = analyze.all_matches(matches)
+evaluator = analyze.NumericMarkovMatchEvaluator()
+all_match_vars = analyze.all_matches(matches, evaluator)
 match_outcomes = analyze.outcomes(all_match_vars)
 
 def player_nodes(player):
@@ -74,11 +75,11 @@ for match in matches:
     players = map(lambda p: player_from_stats(stats, p), match.players)
 
     if match.order == "unordered":
-        eval_method = analyze.match_eval_markov_unordered
+        eval_method = evaluator.eval_unordered
     elif match.order == "total":
-        eval_method = analyze.match_eval_markov_total
+        eval_method = evaluator.eval
     else:
-        eval_method = analyze.match_eval_markov_partial_ordered
+        eval_method = evaluator.eval_partial_ordered
 
     chance_of_win = eval_method(players, match.winning_team, False)
     chance_of_foul_win = eval_method(players, match.winning_team, True)

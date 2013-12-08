@@ -28,13 +28,16 @@ class TestReorder(unittest.TestCase):
             analyze.reorder(['a','b','c','d'], 0, 8)
 
 class TestMatchEvalMarkovUnordered(unittest.TestCase):
+    def setUp(self):
+        self.markov_analyzer = analyze.NumericMarkovMatchEvaluator()
+
     def test_one_on_one_even(self):
         player1 = analyze.new_player('p1', 0.5)
         player2 = analyze.new_player('p2', 0.5)
         player3 = analyze.new_player('p3', 0.5)
         player4 = analyze.new_player('p4', 0.5)
         players = [player1, player2, player3, player4]
-        chance_of_win = analyze.match_eval_markov_unordered(players, 0, False)
+        chance_of_win = self.markov_analyzer.eval_unordered(players, 0, False)
         self.assertAlmostEqual(0.5, chance_of_win)
 
     def test_one_on_one_uneven(self):
@@ -43,7 +46,7 @@ class TestMatchEvalMarkovUnordered(unittest.TestCase):
         player3 = analyze.new_player('p3', 0.75)
         player4 = analyze.new_player('p4', 0.5)
         players = [player1, player2, player3, player4]
-        chance_of_win = analyze.match_eval_markov_unordered(players, 0, False)
+        chance_of_win = self.markov_analyzer.eval_unordered(players, 0, False)
         self.assertLess(0.5, chance_of_win)
 
     def test_one_on_one_uneven(self):
@@ -52,15 +55,18 @@ class TestMatchEvalMarkovUnordered(unittest.TestCase):
         player3 = analyze.new_player('p3', 0.5)
         player4 = analyze.new_player('p4', 0.75)
         players = [player1, player2, player3, player4]
-        chance_of_win = analyze.match_eval_markov_unordered(players, 0, False)
+        chance_of_win = self.markov_analyzer.eval_unordered(players, 0, False)
         self.assertGreater(0.5, chance_of_win)
 
 class TestBuildMarkovChain(unittest.TestCase):
+    def setUp(self):
+        self.markov_analyzer = analyze.NumericMarkovMatchEvaluator()
+
     def test_two_players_even(self):
         player1 = analyze.new_player('p1', 0.5)
         player2 = analyze.new_player('p2', 0.5)
         players = [player1, player2]
-        chain = analyze.build_markov_chain(players)
+        chain = self.markov_analyzer.build_chain(players)
         p1_state = chain.get_state( (0,0,0) )
         p1_wins = chain.get_state( (0, 'win', 0, 0) )
         p2_state = chain.get_state( (1,0,0) )
@@ -74,7 +80,7 @@ class TestBuildMarkovChain(unittest.TestCase):
         player1 = analyze.new_player('p1', 0.5)
         player2 = analyze.new_player('p2', 0.75)
         players = [player1, player2]
-        chain = analyze.build_markov_chain(players)
+        chain = self.markov_analyzer.build_chain(players)
         p1_state = chain.get_state( (0,0,0) )
         p1_wins = chain.get_state( (0, 'win', 0, 0) )
         p2_state = chain.get_state( (1,0,0) )
@@ -88,7 +94,7 @@ class TestBuildMarkovChain(unittest.TestCase):
         player1 = analyze.new_player('p1', 0.5)
         player2 = analyze.new_player('p2', 0.75)
         players = [player1, player2]
-        chain = analyze.build_markov_chain(players)
+        chain = self.markov_analyzer.build_chain(players)
         p1_state = chain.get_state( (0,7,7) )
         p1_wins = chain.get_state( (0, 'win', 0, 0) )
         p2_state = chain.get_state( (1,0,0) )
@@ -105,6 +111,10 @@ class TestBuildMarkovChain(unittest.TestCase):
         
 
 class TestBuildSymbolicMarkovChain(unittest.TestCase):
+    def setUp(self):
+        self.analyzer = analyze.NumericMarkovMatchEvaluator()
+        self.symbolic_analyzer = analyze.SymbolicMarkovMatchEvaluator()
+
     def test_symbolic_matches_numeric(self):
         balls=3
         symbolic_player1 = {}
@@ -114,15 +124,14 @@ class TestBuildSymbolicMarkovChain(unittest.TestCase):
         symbolic_player2['sink'] = sympy.Symbol('p2_sink');
         symbolic_player2['foul_end'] = sympy.Symbol('p2_foul_end');
         symbolic_players = [symbolic_player1, symbolic_player2]
-        symbolic_chain = analyze.build_markov_chain(symbolic_players,
-                                                    markov=symbolicMarkov,
-                                                    ballsPerTeam=balls)
+        symbolic_chain = self.symbolic_analyzer.build_chain(symbolic_players,
+                                                            ballsPerTeam=balls)
 
         player1 = analyze.new_player('p1', 0.5, 0.1)
         player2 = analyze.new_player('p2', 0.75, 0.2)
         players = [player1, player2]
-        chain = analyze.build_markov_chain(players,
-                                           ballsPerTeam=balls)
+        chain = self.analyzer.build_chain(players,
+                                          ballsPerTeam=balls)
 
         probs = chain.get_absorbing_probabilities()
         p1_state = chain.get_state( (0, balls-1, balls-1) )
